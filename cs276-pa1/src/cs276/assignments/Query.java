@@ -20,8 +20,8 @@ public class Query {
 
 	// Term id -> position in index file
 	private static Map<Integer, Long> posDict = new TreeMap<Integer, Long>();
-	// Term id -> document frequency
-	private static Map<Integer, Integer> freqDict = new TreeMap<Integer, Integer>();
+//	// Term id -> document frequency
+//	private static Map<Integer, Integer> freqDict = new TreeMap<Integer, Integer>();
 	// Doc id -> doc name dictionary
 	private static Map<Integer, String> docDict = new TreeMap<Integer, String>();
 	// Term -> term id dictionary
@@ -115,8 +115,7 @@ public class Query {
 			while ((line = postReader.readLine()) != null) {
 			String[] tokens = line.split("\t");
 			posDict.put(Integer.parseInt(tokens[0]), Long.parseLong(tokens[1]));
-			freqDict.put(Integer.parseInt(tokens[0]),
-					Integer.parseInt(tokens[2]));
+//			freqDict.put(Integer.parseInt(tokens[0]), Integer.parseInt(tokens[2]));
 		}
 		postReader.close();
 		

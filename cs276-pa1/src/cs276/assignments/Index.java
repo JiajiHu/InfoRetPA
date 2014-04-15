@@ -24,8 +24,11 @@ import java.nio.*;
 public class Index {
 
 	// Term id -> (position in index file, doc frequency) dictionary
-	private static Map<Integer, Pair<Long, Integer>> postingDict 
-		= new TreeMap<Integer, Pair<Long, Integer>>();
+//	private static Map<Integer, Pair<Long, Integer>> postingDict 
+//		= new TreeMap<Integer, Pair<Long, Integer>>();
+  private static Map<Integer, Long> postingDict 
+  = new TreeMap<Integer, Long>();
+
 	// Doc name -> doc id dictionary
 	private static Map<String, Integer> docDict
 		= new TreeMap<String, Integer>();
@@ -216,7 +219,7 @@ public class Index {
 			int tId;
 			while(pl != null){
 				tId = pl.getTermId();
-				postingDict.put(tId, new Pair<Long, Integer>(prePos, pl.getList().size() ) );
+				postingDict.put(tId, prePos);
 				prePos = fc.position();
 				pl = index.readPosting(fc);
 			}
@@ -255,20 +258,20 @@ public class Index {
 					
 			      	if(tId1 < tId2){
 			        	if(remain == 2){
-			        		postingDict.put(tId1, new Pair<Long, Integer>(mfc.position(), pl1.getList().size() ) );
+			        		postingDict.put(tId1, mfc.position());
 			        	}
 						index.writePosting(mfc, pl1);
 						pl1 = index.readPosting(fc1);
 					}else if(tId1 > tId2){
 		          		if(remain == 2){
-							postingDict.put(tId2, new Pair<Long, Integer>(mfc.position(), pl2.getList().size() ) );
+							postingDict.put(tId2, mfc.position() );
 						}
 						index.writePosting(mfc, pl2);
 						pl2 = index.readPosting(fc2);
 					}else{
 						PostingList mpl = mergePosting(pl1, pl2); // merged posing list
 						if(remain == 2){
-							postingDict.put(mpl.getTermId(), new Pair<Long, Integer>(mfc.position(), mpl.getList().size() ) );
+							postingDict.put(mpl.getTermId(), mfc.position());
 						}
 						index.writePosting(mfc, mpl);
 					    pl1 = index.readPosting(fc1);
@@ -278,7 +281,7 @@ public class Index {
 				while(pl1 != null){
 					tId1 = pl1.getTermId();
 					if(remain == 2){
-						postingDict.put(tId1, new Pair<Long, Integer>(mfc.position(), pl1.getList().size() ) );
+						postingDict.put(tId1, mfc.position());
 					}
 					index.writePosting(mfc, pl1);
 					pl1 = index.readPosting(fc1);
@@ -286,7 +289,7 @@ public class Index {
 				while(pl2 != null){
 					tId2 = pl2.getTermId();
 				  if(remain == 2){
-						postingDict.put(tId2, new Pair<Long, Integer>(mfc.position(), pl2.getList().size() ) );
+						postingDict.put(tId2, mfc.position());
 					}
 					index.writePosting(mfc, pl2);
 					pl2 = index.readPosting(fc2);
@@ -325,8 +328,7 @@ public class Index {
 		BufferedWriter postWriter = new BufferedWriter(new FileWriter(new File(
 				output, "posting.dict")));
 		for (Integer termId : postingDict.keySet()) {
-			postWriter.write(termId + "\t" + postingDict.get(termId).getFirst()
-					+ "\t" + postingDict.get(termId).getSecond() + "\n");
+			postWriter.write(termId + "\t" + postingDict.get(termId) + "\n");
 		}
 		postWriter.close();
 	}
