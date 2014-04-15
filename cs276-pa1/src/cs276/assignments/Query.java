@@ -56,10 +56,10 @@ public class Query {
 				p2++;
 			}
 		}
-		
 		return result;
 
 	}
+	
 	public static void main(String[] args) throws IOException {
 		/* Parse command line */
 		if (args.length != 2) {
@@ -91,8 +91,8 @@ public class Query {
 				"corpus.index"), "r");
 
 		String line = null;
+		
 		/* Term dictionary */
-		//int tIdMin = Integer.MAX_VALUE;
 		BufferedReader termReader = new BufferedReader(new FileReader(new File(
 				input, "term.dict")));
 		while ((line = termReader.readLine()) != null) {
@@ -100,34 +100,25 @@ public class Query {
 			termDict.put(tokens[0], Integer.parseInt(tokens[1]));
 		}
 		termReader.close();
-
-//		System.out.println("term dict size: "+termDict.keySet().size() );
 		
 		/* Doc dictionary */
-		int dIdMin = Integer.MAX_VALUE;
 		BufferedReader docReader = new BufferedReader(new FileReader(new File(
 				input, "doc.dict")));
 		while ((line = docReader.readLine()) != null) {
 			String[] tokens = line.split("\t");
 			docDict.put(Integer.parseInt(tokens[1]), tokens[0]);
-			dIdMin = Math.min(dIdMin, Integer.parseInt(tokens[1]) );
 		}
 		docReader.close();
 
-//		System.out.println("doc dict size: "+docDict.keySet().size() );
-//		System.out.println("dId min="+dIdMin);
-		/* Posting dictionary */
 		BufferedReader postReader = new BufferedReader(new FileReader(new File(
 				input, "posting.dict")));
-		while ((line = postReader.readLine()) != null) {
+			while ((line = postReader.readLine()) != null) {
 			String[] tokens = line.split("\t");
 			posDict.put(Integer.parseInt(tokens[0]), Long.parseLong(tokens[1]));
 			freqDict.put(Integer.parseInt(tokens[0]),
 					Integer.parseInt(tokens[2]));
 		}
 		postReader.close();
-
-//		System.out.println("posting dict size: "+posDict.keySet().size() );
 		
 		/* Processing queries */
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -142,16 +133,13 @@ public class Query {
 			String[] query = line.split("\\s+");
 			List<PostingList> list = new ArrayList<PostingList> ();
 			for(String q: query){
-//				System.out.println("word: "+q);
 				if(!termDict.containsKey(q)){
-//					System.out.println("term not found");
 					flag = true;
 					break;
 				}
 				int tId = termDict.get(q);
 				FileChannel newFc = fc.position(posDict.get(tId));
 				PostingList pl = index.readPosting(newFc);
-//				printPosting(pl);
 				list.add(pl);
 			}
 			
@@ -160,51 +148,39 @@ public class Query {
 				continue;
 			}
 			
-			// sort according to index list length
+			// sort according to index list length: for efficiency
 			Collections.sort(list, new postingListComparator());
 			
 			// intersect:
+			List<Integer> result = list.get(0).getList();
+			PostingList pre = list.get(0), cur;
 			
-				List<Integer> result = list.get(0).getList();
-				PostingList pre = list.get(0), cur;
-				
-				for(int i=1; i<list.size(); i++){
-//					System.out.println("doc freq: "+list.get(i).getList().size() );
-					cur = list.get(i);
-					if(cur.getTermId() == pre.getTermId()){ // ignore duplicate queries
-						continue;
-					}else{
-						
-						result = intersectList(result, cur.getList());
-//						System.out.println("after intersect: ");
-//						System.out.println(result);
-						
-						if(result.size() == 0){
-							break;
-						}
-						pre = cur;
+			for(int i=1; i<list.size(); i++){
+				cur = list.get(i);
+				if(cur.getTermId() == pre.getTermId()){ // ignore duplicate queries
+					continue;
+				}else{					
+					result = intersectList(result, cur.getList());
+					if(result.size() == 0){
+						break;
 					}
+					pre = cur;
 				}
-				
-				if(result.size() == 0){
-					System.out.println("no results found");
-				}else{
-//					System.out.println("number of docs: "+result.size() );
-					List<String> sl = new ArrayList<String>();
-					for(int dId: result){
-//						System.out.println("dId: "+dId);
-						String s = docDict.get(dId);
-						sl.add(s);
-					}
-					
-					Collections.sort(sl);
-//					System.out.println("number of docs after sort: "+result.size() );
-					
-					for(String s: sl){
-						System.out.println(s);
-					}
+			}
+			
+			if(result.size() == 0){
+				System.out.println("no results found");
+			}else{
+				List<String> sl = new ArrayList<String>();
+				for(int dId: result){
+					String s = docDict.get(dId);
+					sl.add(s);
+				}				
+				Collections.sort(sl);
+				for(String s: sl){
+					System.out.println(s);
 				}
-				
+			}
 		}
 		br.close();
 		indexFile.close();

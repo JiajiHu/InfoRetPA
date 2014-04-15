@@ -132,7 +132,7 @@ public class Index {
 
 		/* BSBI indexing algorithm */
 		File[] dirlist = rootdir.listFiles();  // block list
-		// TODO: if only one block -- need to parse, no need to merge -- process in merge !
+		// TODO: one block code test. if only one block -- need to parse, no need to merge -- process in merge !
 		
 		/* For each block */
 		for (File block : dirlist) {
@@ -207,87 +207,103 @@ public class Index {
 		System.out.println(totalFileCount);
 
 		/* Merge blocks */
-		while (true) {
-			int remain = blockQueue.size();
-			if (remain <= 1)
-				break;
-			
-			File b1 = blockQueue.removeFirst();
-			File b2 = blockQueue.removeFirst();
-			File combfile = new File(output, b1.getName() + "+" + b2.getName());
-			if (!combfile.createNewFile()) {
-				System.err.println("Create new block failure.");
-				return;
+		if(dirlist.length == 1){	// only one block in total, no need to merge, but need to populate 'postingDict'
+			File b = blockQueue.getFirst();		// shouldn't remove, this file will be renamed to index file
+			RandomAccessFile bf = new RandomAccessFile(b, "r");
+			FileChannel fc = bf.getChannel();
+			long prePos = fc.position();
+			PostingList pl = index.readPosting(fc);
+			int tId;
+			while(pl != null){
+				tId = pl.getTermId();
+				postingDict.put(tId, new Pair<Long, Integer>(prePos, pl.getList().size() ) );
+				prePos = fc.position();
+				pl = index.readPosting(fc);
 			}
 			
-			RandomAccessFile bf1 = new RandomAccessFile(b1, "r");
-			RandomAccessFile bf2 = new RandomAccessFile(b2, "r");
-			RandomAccessFile mf = new RandomAccessFile(combfile, "rw");
-			 
-			/*
-			 * Your code here
-			 */
-			FileChannel fc1 = bf1.getChannel();
-			FileChannel fc2 = bf2.getChannel();
-			FileChannel mfc = mf.getChannel();
-			PostingList pl1 = index.readPosting(fc1);
-			PostingList pl2 = index.readPosting(fc2);
-			int tId1, tId2;
-      
-			while(pl1 != null && pl2 != null){
-				tId1 = pl1.getTermId();
-				tId2 = pl2.getTermId();
+		}else{
+			while (true) {
+				int remain = blockQueue.size();
+				if (remain <= 1)
+					break;
 				
-		      	if(tId1 < tId2){
-		        	if(remain == 2){
-		        		postingDict.put(tId1, new Pair<Long, Integer>(mfc.position(), pl1.getList().size() ) );
-		        	}
+				File b1 = blockQueue.removeFirst();
+				File b2 = blockQueue.removeFirst();
+				File combfile = new File(output, b1.getName() + "+" + b2.getName());
+				if (!combfile.createNewFile()) {
+					System.err.println("Create new block failure.");
+					return;
+				}
+				
+				RandomAccessFile bf1 = new RandomAccessFile(b1, "r");
+				RandomAccessFile bf2 = new RandomAccessFile(b2, "r");
+				RandomAccessFile mf = new RandomAccessFile(combfile, "rw");
+				 
+				/*
+				 * Your code here
+				 */
+				FileChannel fc1 = bf1.getChannel();
+				FileChannel fc2 = bf2.getChannel();
+				FileChannel mfc = mf.getChannel();
+				PostingList pl1 = index.readPosting(fc1);
+				PostingList pl2 = index.readPosting(fc2);
+				int tId1, tId2;
+	      
+				while(pl1 != null && pl2 != null){
+					tId1 = pl1.getTermId();
+					tId2 = pl2.getTermId();
+					
+			      	if(tId1 < tId2){
+			        	if(remain == 2){
+			        		postingDict.put(tId1, new Pair<Long, Integer>(mfc.position(), pl1.getList().size() ) );
+			        	}
+						index.writePosting(mfc, pl1);
+						pl1 = index.readPosting(fc1);
+					}else if(tId1 > tId2){
+		          		if(remain == 2){
+							postingDict.put(tId2, new Pair<Long, Integer>(mfc.position(), pl2.getList().size() ) );
+						}
+						index.writePosting(mfc, pl2);
+						pl2 = index.readPosting(fc2);
+					}else{
+						PostingList mpl = mergePosting(pl1, pl2); // merged posing list
+						if(remain == 2){
+							postingDict.put(mpl.getTermId(), new Pair<Long, Integer>(mfc.position(), mpl.getList().size() ) );
+						}
+						index.writePosting(mfc, mpl);
+					    pl1 = index.readPosting(fc1);
+					    pl2 = index.readPosting(fc2);
+					}
+				}
+				while(pl1 != null){
+					tId1 = pl1.getTermId();
+					if(remain == 2){
+						postingDict.put(tId1, new Pair<Long, Integer>(mfc.position(), pl1.getList().size() ) );
+					}
 					index.writePosting(mfc, pl1);
 					pl1 = index.readPosting(fc1);
-				}else if(tId1 > tId2){
-	          		if(remain == 2){
+				}
+				while(pl2 != null){
+					tId2 = pl2.getTermId();
+				  if(remain == 2){
 						postingDict.put(tId2, new Pair<Long, Integer>(mfc.position(), pl2.getList().size() ) );
 					}
 					index.writePosting(mfc, pl2);
 					pl2 = index.readPosting(fc2);
-				}else{
-					PostingList mpl = mergePosting(pl1, pl2); // merged posing list
-					if(remain == 2){
-						postingDict.put(mpl.getTermId(), new Pair<Long, Integer>(mfc.position(), mpl.getList().size() ) );
-					}
-					index.writePosting(mfc, mpl);
-				    pl1 = index.readPosting(fc1);
-				    pl2 = index.readPosting(fc2);
 				}
+				
+				bf1.close();
+				bf2.close();
+				mf.close();
+				mfc.close();
+				fc1.close();
+				fc2.close();
+				b1.delete();
+				b2.delete();
+				blockQueue.add(combfile);
 			}
-			while(pl1 != null){
-				tId1 = pl1.getTermId();
-				if(remain == 2){
-					postingDict.put(tId1, new Pair<Long, Integer>(mfc.position(), pl1.getList().size() ) );
-				}
-				index.writePosting(mfc, pl1);
-				pl1 = index.readPosting(fc1);
-			}
-			while(pl2 != null){
-				tId2 = pl2.getTermId();
-			  if(remain == 2){
-					postingDict.put(tId2, new Pair<Long, Integer>(mfc.position(), pl2.getList().size() ) );
-				}
-				index.writePosting(mfc, pl2);
-				pl2 = index.readPosting(fc2);
-			}
-			
-			bf1.close();
-			bf2.close();
-			mf.close();
-			mfc.close();
-			fc1.close();
-			fc2.close();
-			b1.delete();
-			b2.delete();
-			blockQueue.add(combfile);
 		}
-
+		
 		/* Dump constructed index back into file system */
 		File indexFile = blockQueue.removeFirst();
 		indexFile.renameTo(new File(output, "corpus.index"));
