@@ -13,11 +13,12 @@ import java.nio.channels.FileChannel;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.TreeMap;
 import java.nio.*;
 
 public class Index {
@@ -51,14 +52,7 @@ public class Index {
 	 * so that you can read it back during retrieval
 	 * 
 	 * */
-//	private static void writePosting(FileChannel fc, PostingList posting)
-//			throws IOException {
-//		/*
-//		 * Your code here
-//		 */
-//		// this should be implemented in BaseIndex interface
-//	}
-
+	
 	private static PostingList mergePosting(PostingList pl1, PostingList pl2){
 		assert(pl1 != null && pl2 != null && pl1.getTermId() == pl2.getTermId());
 		int tId = pl1.getTermId();
@@ -138,24 +132,21 @@ public class Index {
 
 		/* BSBI indexing algorithm */
 		File[] dirlist = rootdir.listFiles();  // block list
-
+		// TODO: if only one block -- need to parse, no need to merge -- process in merge !
+		
 		/* For each block */
 		for (File block : dirlist) {
 			File blockFile = new File(output, block.getName());
-			System.out.println("processing block "+block.getName());
 			blockQueue.add(blockFile);
 
 			File blockDir = new File(root, block.getName());
-			File[] filelist = blockDir.listFiles();  // file list in each block
-			
-			//Map<Integer, HashSet<Integer> > termIdDocId = new HashMap<Integer, HashSet<Integer> > ();
-			List<Pair<Integer, Integer> > termIdDocId = new ArrayList<Pair<Integer, Integer>>();
+			File[] filelist = blockDir.listFiles();  // file list in each block			
+			SortedMap<Integer, ArrayList<Integer> > termIdDocId = new TreeMap<Integer, ArrayList<Integer>> ();
 			
 			/* For each file */
 			for (File file : filelist) {
 				++totalFileCount;
 				String fileName = block.getName() + "/" + file.getName();
-//				System.out.println(fileName);
 				int docId = docIdCounter;
 				docDict.put(fileName, docIdCounter++);
 				
@@ -174,8 +165,17 @@ public class Index {
 							termId = wordIdCounter;
 							termDict.put(token, wordIdCounter++);
 						}
-						
-						termIdDocId.add(new Pair<Integer, Integer>(termId, docId));
+						ArrayList<Integer> al;
+						if(termIdDocId.containsKey(termId)){
+							al = termIdDocId.get(termId); 
+							if(al.get(al.size()-1) != docId){
+								al.add(docId);
+							}
+						}else{
+							al = new ArrayList<Integer>();
+							al.add(docId);
+							termIdDocId.put(termId, al);
+						}
 					}
 				}
 				reader.close();
@@ -191,45 +191,11 @@ public class Index {
 			/*
 			 * Your code here
 			 */
-			Collections.sort(termIdDocId, new pairComparator() );
-			HashMap<Integer, ArrayList<Integer>> map = new HashMap<Integer, ArrayList<Integer>>();
-			ArrayList<Integer> al;
-			
-			for(Pair<Integer, Integer> pair: termIdDocId){
-				//System.out.println(pair.getFirst()+" "+pair.getSecond());
-				int tId = pair.getFirst();
-				int dId = pair.getSecond();
-				if(map.containsKey(tId)){
-					al = map.get(tId);
-					assert(al.size()>0);
-					int preId = al.get(al.size()-1);
-					if(dId != preId){
-						al.add(dId);
-					}
-				}else{
-					al = new ArrayList<Integer>();
-					al.add(dId);
-					map.put(tId, al);
-				}
-			}
-			boolean flag = false;
-			int old = 0;
-			for(Pair<Integer, Integer> pair: termIdDocId){
-			  int tId = pair.getFirst();
-			  if(tId == old){
-			    continue;
-			  }
-			  old = tId;
-			  if (!flag){
-			    if(tId != 1){
-			      System.out.println("first value out is not 1: it's "+ tId);
-			    }
-			    flag = true;
-			  }
-			  if(tId == 1){
-			    System.out.println("tId=1, length of posting list="+map.get(tId).size() );
-			  }
-			  PostingList pl = new PostingList(tId, map.get(tId));
+			ArrayList<Integer> dIdList;
+			PostingList pl;
+			for(int tId: termIdDocId.keySet()){
+				dIdList = termIdDocId.get(tId);
+				pl = new PostingList(tId, dIdList);
 				index.writePosting(ch, pl);
 			}
 			ch.close();
@@ -253,8 +219,6 @@ public class Index {
 				System.err.println("Create new block failure.");
 				return;
 			}
-
-			System.out.println("Writing to: "+combfile.getName());
 			
 			RandomAccessFile bf1 = new RandomAccessFile(b1, "r");
 			RandomAccessFile bf2 = new RandomAccessFile(b2, "r");
@@ -266,58 +230,34 @@ public class Index {
 			FileChannel fc1 = bf1.getChannel();
 			FileChannel fc2 = bf2.getChannel();
 			FileChannel mfc = mf.getChannel();
-//			System.out.println(mfc.position());
 			PostingList pl1 = index.readPosting(fc1);
 			PostingList pl2 = index.readPosting(fc2);
 			int tId1, tId2;
-
       
 			while(pl1 != null && pl2 != null){
 				tId1 = pl1.getTermId();
 				tId2 = pl2.getTermId();
 				
-	      if(tId1 < tId2){
-	        if(tId1 == 1){
-	          System.out.println("IN PART ONE mfc position at tID = 1: "+ mfc.position());
-	            System.out.println("tId=1, length of posting list="+pl1.getList().size() );
-          }
-	        if(remain == 2){
-					  
-					  postingDict.put(tId1, new Pair<Long, Integer>(mfc.position(), pl1.getList().size() ) );
-					}
-//					printPosting(pl1);
+		      	if(tId1 < tId2){
+		        	if(remain == 2){
+		        		postingDict.put(tId1, new Pair<Long, Integer>(mfc.position(), pl1.getList().size() ) );
+		        	}
 					index.writePosting(mfc, pl1);
 					pl1 = index.readPosting(fc1);
 				}else if(tId1 > tId2){
-				  if(tId2 == 1){
-            System.out.println("IN PART TWO mfc position at tID = 1: "+mfc.position());
-            System.out.println("tId=1, length of posting list="+pl1.getList().size() );
-              }
-          if(remain == 2){
-					  postingDict.put(tId2, new Pair<Long, Integer>(mfc.position(), pl2.getList().size() ) );
+	          		if(remain == 2){
+						postingDict.put(tId2, new Pair<Long, Integer>(mfc.position(), pl2.getList().size() ) );
 					}
-//					printPosting(pl2);
 					index.writePosting(mfc, pl2);
 					pl2 = index.readPosting(fc2);
 				}else{
-					
-//					printPosting(pl1);
-//					printPosting(pl2);
 					PostingList mpl = mergePosting(pl1, pl2); // merged posing list
-//					System.out.println("Merge result: ");
-//					printPosting(mpl);
-					if(tId1 == 1){
-            System.out.println("IN PART THREE mfc position at tID = 1: "+mfc.position());
-            System.out.println("tId=1, merged length of posting list="+mpl.getList().size() );
-              }
-          
 					if(remain == 2){
-				    postingDict.put(mpl.getTermId(), new Pair<Long, Integer>(mfc.position(), mpl.getList().size() ) );
+						postingDict.put(mpl.getTermId(), new Pair<Long, Integer>(mfc.position(), mpl.getList().size() ) );
 					}
-					
 					index.writePosting(mfc, mpl);
-			    pl1 = index.readPosting(fc1);
-			    pl2 = index.readPosting(fc2);
+				    pl1 = index.readPosting(fc1);
+				    pl2 = index.readPosting(fc2);
 				}
 			}
 			while(pl1 != null){
@@ -325,18 +265,16 @@ public class Index {
 				if(remain == 2){
 					postingDict.put(tId1, new Pair<Long, Integer>(mfc.position(), pl1.getList().size() ) );
 				}
-//				printPosting(pl1);
 				index.writePosting(mfc, pl1);
-         pl1 = index.readPosting(fc1);
+				pl1 = index.readPosting(fc1);
 			}
 			while(pl2 != null){
 				tId2 = pl2.getTermId();
 			  if(remain == 2){
 					postingDict.put(tId2, new Pair<Long, Integer>(mfc.position(), pl2.getList().size() ) );
 				}
-//				printPosting(pl2);
 				index.writePosting(mfc, pl2);
-         pl2 = index.readPosting(fc2);
+				pl2 = index.readPosting(fc2);
 			}
 			
 			bf1.close();
@@ -349,8 +287,7 @@ public class Index {
 			b2.delete();
 			blockQueue.add(combfile);
 		}
-//		System.out.println("blockQueue size="+blockQueue.size());
-//		System.out.println("posting dict size="+postingDict.size());
+
 		/* Dump constructed index back into file system */
 		File indexFile = blockQueue.removeFirst();
 		indexFile.renameTo(new File(output, "corpus.index"));

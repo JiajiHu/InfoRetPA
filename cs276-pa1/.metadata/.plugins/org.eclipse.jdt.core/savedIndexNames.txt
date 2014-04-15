@@ -1,0 +1,3 @@
+INDEX VERSION 1.126+/Users/air/Desktop/Courses/Stanford_Spring2014/cs276/pa/InfoRetPA/cs276-pa1/.metadata/.plugins/org.eclipse.jdt.core
+3000285004.index
+966692894.index

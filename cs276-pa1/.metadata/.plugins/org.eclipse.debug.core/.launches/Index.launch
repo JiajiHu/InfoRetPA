@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.jdt.launching.localJavaApplication">
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/cs276-pa1/src/cs276/assignments/Index.java"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="1"/>
+</listAttribute>
+<booleanAttribute key="org.eclipse.jdt.launching.ATTR_USE_START_ON_FIRST_THREAD" value="true"/>
+<stringAttribute key="org.eclipse.jdt.launching.MAIN_TYPE" value="cs276.assignments.Index"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROGRAM_ARGUMENTS" value="“Basic” /Users/air/Desktop/Courses/Stanford_Spring2014/cs276/pa/InfoRetPA/cs276-pa1/data /Users/air/Desktop/Courses/Stanford_Spring2014/cs276/pa/InfoRetPA/cs276-pa1/temp4"/>
+<stringAttribute key="org.eclipse.jdt.launching.PROJECT_ATTR" value="cs276-pa1"/>
+<stringAttribute key="org.eclipse.jdt.launching.VM_ARGUMENTS" value="-Xmx1G"/>
+</launchConfiguration>

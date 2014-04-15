@@ -101,7 +101,7 @@ public class Query {
 		}
 		termReader.close();
 
-		System.out.println("term dict size: "+termDict.keySet().size() );
+//		System.out.println("term dict size: "+termDict.keySet().size() );
 		
 		/* Doc dictionary */
 		int dIdMin = Integer.MAX_VALUE;
@@ -114,8 +114,8 @@ public class Query {
 		}
 		docReader.close();
 
-		System.out.println("doc dict size: "+docDict.keySet().size() );
-		System.out.println("dId min="+dIdMin);
+//		System.out.println("doc dict size: "+docDict.keySet().size() );
+//		System.out.println("dId min="+dIdMin);
 		/* Posting dictionary */
 		BufferedReader postReader = new BufferedReader(new FileReader(new File(
 				input, "posting.dict")));
@@ -127,7 +127,7 @@ public class Query {
 		}
 		postReader.close();
 
-		System.out.println("posting dict size: "+posDict.keySet().size() );
+//		System.out.println("posting dict size: "+posDict.keySet().size() );
 		
 		/* Processing queries */
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -142,16 +142,16 @@ public class Query {
 			String[] query = line.split("\\s+");
 			List<PostingList> list = new ArrayList<PostingList> ();
 			for(String q: query){
-				System.out.println("word: "+q);
+//				System.out.println("word: "+q);
 				if(!termDict.containsKey(q)){
-					System.out.println("term not found");
+//					System.out.println("term not found");
 					flag = true;
 					break;
 				}
 				int tId = termDict.get(q);
 				FileChannel newFc = fc.position(posDict.get(tId));
 				PostingList pl = index.readPosting(newFc);
-				printPosting(pl);
+//				printPosting(pl);
 				list.add(pl);
 			}
 			
@@ -169,15 +169,15 @@ public class Query {
 				PostingList pre = list.get(0), cur;
 				
 				for(int i=1; i<list.size(); i++){
-					System.out.println("doc freq: "+list.get(i).getList().size() );
+//					System.out.println("doc freq: "+list.get(i).getList().size() );
 					cur = list.get(i);
 					if(cur.getTermId() == pre.getTermId()){ // ignore duplicate queries
 						continue;
 					}else{
 						
 						result = intersectList(result, cur.getList());
-						System.out.println("after intersect: ");
-						System.out.println(result);
+//						System.out.println("after intersect: ");
+//						System.out.println(result);
 						
 						if(result.size() == 0){
 							break;
@@ -189,10 +189,10 @@ public class Query {
 				if(result.size() == 0){
 					System.out.println("no results found");
 				}else{
-					System.out.println("number of docs: "+result.size() );
+//					System.out.println("number of docs: "+result.size() );
 					List<String> sl = new ArrayList<String>();
 					for(int dId: result){
-						System.out.println("dId: "+dId);
+//						System.out.println("dId: "+dId);
 						String s = docDict.get(dId);
 						sl.add(s);
 					}

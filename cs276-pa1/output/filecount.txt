@@ -1,0 +1,5 @@
+processing block 0
+tId=1, length of posting list=49
+processing block 1
+tId=1, length of posting list=41
+processing block 2

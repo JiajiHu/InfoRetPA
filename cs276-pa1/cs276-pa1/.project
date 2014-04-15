@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>cs276-pa1</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>classes</name>
+			<type>2</type>
+			<location>/Users/air/Desktop/Courses/Stanford_Spring2014/cs276/pa/InfoRetPA/cs276-pa1/classes</location>
+		</link>
+		<link>
+			<name>src</name>
+			<type>2</type>
+			<location>/Users/air/Desktop/Courses/Stanford_Spring2014/cs276/pa/InfoRetPA/cs276-pa1/src</location>
+		</link>
+	</linkedResources>
+</projectDescription>
