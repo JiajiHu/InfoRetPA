@@ -35,7 +35,11 @@ public class Query {
 	 * You should seek to the file position of this specific
 	 * posting list and read it back.
 	 * */
-
+	private static void printPosting(PostingList pl){
+		assert(pl != null);
+		System.out.println(pl.getTermId()
+				+ "\t" + pl.getList() + "\n");	
+	}
 	private static List<Integer> intersectList(List<Integer> l1, List<Integer> l2){
 		List<Integer> result = new ArrayList<Integer>();
 		int p1 = 0, p2 = 0, dId1, dId2;
@@ -88,6 +92,7 @@ public class Query {
 
 		String line = null;
 		/* Term dictionary */
+		//int tIdMin = Integer.MAX_VALUE;
 		BufferedReader termReader = new BufferedReader(new FileReader(new File(
 				input, "term.dict")));
 		while ((line = termReader.readLine()) != null) {
@@ -96,15 +101,21 @@ public class Query {
 		}
 		termReader.close();
 
+		System.out.println("term dict size: "+termDict.keySet().size() );
+		
 		/* Doc dictionary */
+		int dIdMin = Integer.MAX_VALUE;
 		BufferedReader docReader = new BufferedReader(new FileReader(new File(
 				input, "doc.dict")));
 		while ((line = docReader.readLine()) != null) {
 			String[] tokens = line.split("\t");
 			docDict.put(Integer.parseInt(tokens[1]), tokens[0]);
+			dIdMin = Math.min(dIdMin, Integer.parseInt(tokens[1]) );
 		}
 		docReader.close();
 
+		System.out.println("doc dict size: "+docDict.keySet().size() );
+		System.out.println("dId min="+dIdMin);
 		/* Posting dictionary */
 		BufferedReader postReader = new BufferedReader(new FileReader(new File(
 				input, "posting.dict")));
@@ -116,6 +127,8 @@ public class Query {
 		}
 		postReader.close();
 
+		System.out.println("posting dict size: "+posDict.keySet().size() );
+		
 		/* Processing queries */
 		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
 
@@ -125,38 +138,47 @@ public class Query {
 			/*
 			 * Your code here
 			 */
-//			System.out.println("query: "+line);
+			boolean flag = false;
 			String[] query = line.split("\\s+");
 			List<PostingList> list = new ArrayList<PostingList> ();
 			for(String q: query){
+				System.out.println("word: "+q);
 				if(!termDict.containsKey(q)){
+					System.out.println("term not found");
+					flag = true;
 					break;
 				}
 				int tId = termDict.get(q);
 				FileChannel newFc = fc.position(posDict.get(tId));
 				PostingList pl = index.readPosting(newFc);
+				printPosting(pl);
 				list.add(pl);
 			}
+			
+			if(flag){ // if any query word is not in dict
+				System.out.println("no results found");
+				continue;
+			}
+			
+			// sort according to index list length
 			Collections.sort(list, new postingListComparator());
 			
-			// debug:
-//			for(PostingList pl: list){
-//				Index.printPosting(pl);
-//			}
-			
 			// intersect:
-			if(list.size() == 0){
-				System.out.println("no results found");
-			}else{
+			
 				List<Integer> result = list.get(0).getList();
 				PostingList pre = list.get(0), cur;
 				
 				for(int i=1; i<list.size(); i++){
+					System.out.println("doc freq: "+list.get(i).getList().size() );
 					cur = list.get(i);
 					if(cur.getTermId() == pre.getTermId()){ // ignore duplicate queries
 						continue;
 					}else{
+						
 						result = intersectList(result, cur.getList());
+						System.out.println("after intersect: ");
+						System.out.println(result);
+						
 						if(result.size() == 0){
 							break;
 						}
@@ -167,17 +189,22 @@ public class Query {
 				if(result.size() == 0){
 					System.out.println("no results found");
 				}else{
+					System.out.println("number of docs: "+result.size() );
 					List<String> sl = new ArrayList<String>();
 					for(int dId: result){
+						System.out.println("dId: "+dId);
 						String s = docDict.get(dId);
 						sl.add(s);
 					}
+					
 					Collections.sort(sl);
+//					System.out.println("number of docs after sort: "+result.size() );
+					
 					for(String s: sl){
 						System.out.println(s);
 					}
 				}
-			}	
+				
 		}
 		br.close();
 		indexFile.close();
