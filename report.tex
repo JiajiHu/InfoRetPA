@@ -8,11 +8,21 @@
 
 \section{Program Structure}
 \subsection{Basic Structure}
-For creating the index, we use Blocked sort-based indexing (BSBI). Globally, we maintain three dictionaries, the term dictionary, document dictionary and the postings dictionary. The term dictionary and document dictionary are used to save space in the index as well as for convenience in operations. The postings dictionary is used to quickly find the correct postings at query time.
+The classes used in this programming assignment are as follows:
 
-In this assignment, the data is given to us already segmented into blocks (different folders). Next, we read the terms from the documents(files) of each block, generate a $<termID,docID>$ pair. All such pairs that appear in the block are then sorted with termID as the primary key and docID as the secondary key. From that, a postings list can be created for each termID. There are then written out to disk as intermediate results. In this assignment, we used three different methods to encode and store our index, which will be discussed in detail in the next subsection.
+{\it Index} and {\it Query} are used to handle indexing and querying, respectively.
 
-In our implementation, we opted to include the length of the postings list (the number of docIDs) at the front of the posting list, and then write it out to disk. By doing so, we no longer need to record the length of the lists in the postings dictionary. (By not saving the frequency in the postings dictionary, but in the actual index, we can now use compression encoding on that number, potentially saving some space in total.)
+{\it BaseIndex} is the interface, and {\it BasicIndex}, {\it VBIndex} and {\it GammaIndex} do the encoding and decoding for writing to (reading from) output files.
+
+{\it pairComparator} and {\it postingListComparator} are used to help sort the posting lists.
+
+The program does the following:
+
+For indexing, we use Blocked sort-based indexing (BSBI). Globally, we maintain the term dictionary, document dictionary and the postings dictionary. The first two are used to save space in the index and for convenience in operations. The postings dictionary is used to quickly find the correct postings at query time.
+
+In this assignment, the data is given to us already segmented into blocks (different folders). Next, we read the terms from the documents(files) of each block, generate a $<termID,docID>$ pair. All such pairs that appear in the block are then sorted with termID as the primary key and docID as the secondary key. From that, a postings list can be created for each termID. There are then written out to disk as intermediate results. In this assignment, we used three different encoding methods, which will be discussed in detail in the next subsection.
+
+In our implementation, we opted to include the length of the postings list (the number of docIDs) at the front of the posting list. By doing so, we no longer need to record the length of the lists in the postings dictionary. (Now, we can use compression encoding on that number, potentially saving some space in total.)
 
 Finally, we merge the intermediate blocks into the final index. In this assignment, we perform binary merge on the blocks. The effect of the merge is that postings lists with the same termID will be combined. The algorithm to merge postings lists is quite similar to the algorithm for the intersection of postings lists, which we discussed and implemented in class.
 
@@ -34,7 +44,6 @@ However, the encoding/decoding steps for gamma encoding can more expensive, beca
 \end{enumerate}
 
 \section{Statistics}
-The following table shows statistics of different algorithms on the dev dataset.
 \begin{table}[ht]
 \begin{tabular}{| c | c | c | c | c |}
 \hline
