@@ -1,4 +1,5 @@
 *.class
 *.aux
 *.log
+*.synctex.gz
 .DS_STORE
