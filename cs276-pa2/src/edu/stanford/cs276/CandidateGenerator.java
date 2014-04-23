@@ -25,11 +25,11 @@ public class CandidateGenerator implements Serializable {
 	}
 	
 	
-	public static final Character[] alphabet = {
-					'a','b','c','d','e','f','g','h','i','j','k','l','m','n',
-					'o','p','q','r','s','t','u','v','w','x','y','z',
-					'0','1','2','3','4','5','6','7','8','9',
-					' ',','};
+		public static final Character[] alphabet = {
+    'a','b','c','d','e','f','g','h','i','j','k','l','m','n',
+    'o','p','q','r','s','t','u','v','w','x','y','z',
+    '0','1','2','3','4','5','6','7','8','9',
+    ' ',','};
 	
 	// Generate all candidates for the target query
 	public HashMap<String,Integer> getCandidates(String query, Dictionary dict) throws Exception {
@@ -47,9 +47,10 @@ public class CandidateGenerator implements Serializable {
 	    for (int j=i+1;j<qwords.length;j++){
 	      back = back + " " + qwords[j];
 	    }
-	    
-	    for(String possible: editDistanceOne(qwords[i],dict)){
-	      candidates.put((front + possible + back).trim(), 1);
+	    //TODO: check front and back: if contains non-dictionary words, don't put in candidates
+	    HashMap<String,Integer> possibles = editDistanceOne(qwords[i],dict);
+	    for(String possible: possibles.keySet()){
+	      candidates.put((front + possible + back).trim(), possibles.get(possible));
 	    }
 	    
 	    front = front + qwords[i] + " ";
@@ -57,9 +58,9 @@ public class CandidateGenerator implements Serializable {
 	  
 		return candidates;
 	}
-	public Set<String> editDistanceOne(String qword, Dictionary dict){
+	public HashMap<String,Integer> editDistanceOne(String qword, Dictionary dict){
 	  //return strings of edit distance one, including splits, excluding merges
-	  Set<String> possibles = new HashSet<String>();
+	  HashMap<String,Integer> possibles = new HashMap<String,Integer>();
 	  Set<Pair<String,String>> splits = new HashSet<Pair<String,String>>();
 	  // splits
 	  for (int i=0; i<qword.length(); i++){
@@ -67,25 +68,25 @@ public class CandidateGenerator implements Serializable {
 	  }
 	  for (Pair<String,String> split:splits){
 	    if (dict.count(split.getFirst())!=0 && dict.count(split.getFirst())!=0)
-	    possibles.add((split.getFirst()+" "+split.getSecond()).trim());
+	    possibles.put(((split.getFirst()+" "+split.getSecond()).trim()),1);
 	  }
 	  // deletes
-    // never delete a single letter word
-    if (qword.length() > 1) {
-      for (Pair<String,String> split:splits){
-        if (split.getSecond().length()>0){
-          // never take out a trailing s
-          if (split.getSecond().length()==1 && split.getSecond().charAt(0)=='s')
-            continue;
-          if (dict.count(split.getFirst()+split.getSecond().substring(1))!=0)
-            possibles.add(split.getFirst()+split.getSecond().substring(1));
-        }
-      }      
-    }
-	  // transposes
+    for (Pair<String,String> split:splits){
+      if (split.getSecond().length()>0){
+        // never delete a single letter word
+        if (qword.length() == 1)
+          continue;
+        // never take out a trailing s
+        if (split.getSecond().length()==1 && split.getSecond().charAt(0)=='s')
+          continue;
+        if (dict.count(split.getFirst()+split.getSecond().substring(1))!=0)
+          possibles.put((split.getFirst()+split.getSecond().substring(1)),1);
+      }
+    }      
+    // transposes
 	  for (Pair<String,String> split:splits){
       if (split.getSecond().length()>1 && dict.count(split.getFirst()+split.getSecond().charAt(1)+split.getSecond().charAt(0)+split.getSecond().substring(2)) != 0)
-        possibles.add(split.getFirst()+split.getSecond().charAt(1)+split.getSecond().charAt(0)+split.getSecond().substring(2));
+        possibles.put((split.getFirst()+split.getSecond().charAt(1)+split.getSecond().charAt(0)+split.getSecond().substring(2)),1);
     }
 	  // replaces
 	  for (Pair<String,String> split:splits){
@@ -101,9 +102,9 @@ public class CandidateGenerator implements Serializable {
           if (split.getSecond().length()==1 && split.getSecond().charAt(0)=='s' && c ==' ')
             continue;
           if (c != ' ' && dict.count(split.getFirst()+ c +split.getSecond().substring(1))!=0)
-            possibles.add(split.getFirst()+ c +split.getSecond().substring(1));
+            possibles.put((split.getFirst()+ c +split.getSecond().substring(1)),1);
           if (c == ' ' && dict.count((split.getFirst()).trim()) != 0 && dict.count((split.getSecond().substring(1)).trim()) != 0)
-            possibles.add((split.getFirst()+ c +split.getSecond().substring(1).trim())); 
+            possibles.put(((split.getFirst()+ c +split.getSecond().substring(1).trim())),2); 
         }
       }
     }
@@ -111,9 +112,9 @@ public class CandidateGenerator implements Serializable {
 	  for (Pair<String,String> split:splits){
       for (Character c: alphabet){
         if (c != ' ' && dict.count(split.getFirst()+c+split.getSecond()) != 0)
-          possibles.add(split.getFirst()+c+split.getSecond());
+          possibles.put((split.getFirst()+c+split.getSecond()),1);
         if (c == ' ' && dict.count(split.getFirst()) != 0 && dict.count(split.getSecond()) != 0)
-          possibles.add((split.getFirst()+c+split.getSecond()).trim());
+          possibles.put(((split.getFirst()+c+split.getSecond()).trim()),1);
       }
     }
 	  return possibles;
