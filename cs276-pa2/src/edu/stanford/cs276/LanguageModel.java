@@ -26,8 +26,8 @@ public class LanguageModel implements Serializable {
 	 * Your code here ...
 	 */
 	/*********************************************/
-	private static Dictionary unaryFreq = new Dictionary();
-	private static BinDictionary binaryFreq = new BinDictionary();
+	public Dictionary unaryFreq = new Dictionary();
+	public BinDictionary binaryFreq = new BinDictionary();
   /*********************************************/
   
 	// Do not call constructor directly since this is a Singleton

@@ -3,12 +3,20 @@ package edu.stanford.cs276;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Set;
+
+import edu.stanford.cs276.util.Pair;
 
 public class RunCorrector {
 
 	public static LanguageModel languageModel;
 	public static NoisyChannelModel nsm;
-	
+  /*************************************/
+	public static CandidateGenerator candidateGen;
+  /*************************************/
 
 	public static void main(String[] args) throws Exception {
 		
@@ -59,27 +67,51 @@ public class RunCorrector {
 		}
 		
 		// Load models from disk
-		languageModel = LanguageModel.load(); 
+		languageModel = LanguageModel.load();
 		nsm = NoisyChannelModel.load();
+	  /*************************************/
+		candidateGen = CandidateGenerator.get();
+		/*************************************/
 		BufferedReader queriesFileReader = new BufferedReader(new FileReader(new File(queryFilePath)));
 		nsm.setProbabilityType(uniformOrEmpirical);
 		
 		int totalCount = 0;
 		int yourCorrectCount = 0;
 		String query = null;
-		
+	  /**************************************/
+    double mu = 1;
+    double lambda = 0.1;
+	  /**************************************/
+    
 		/*
 		 * Each line in the file represents one query.  We loop over each query and find
 		 * the most likely correction
 		 */
 		while ((query = queriesFileReader.readLine()) != null) {
 			
-			String correctedQuery = query;
 			/*
 			 * Your code here
 			 */
+      String correctedQuery = query;
+			/**************************************/
+			double highscore = Double.NEGATIVE_INFINITY;
 			
-			
+			double score;
+			HashMap<String,Integer> candidates = candidateGen.getCandidates(query,languageModel.unaryFreq);
+			for(String current: candidates.keySet()){
+			  
+			  String[] q_words = current.trim().split("\\s+");
+        score = Math.log(languageModel.findUnaryProb(q_words[0]));
+        for (int i=1; i<q_words.length;i++){
+          score = score + Math.log(languageModel.interpolationProb(new Pair<String,String> (q_words[i-1],q_words[i]), lambda));
+        }
+        score = score + Math.log(nsm.ecm_.editProbability(query, current, candidates.get(current)));
+        if (score > highscore){
+          highscore = score;
+          correctedQuery = current;
+        }
+			}
+      /**************************************/			
 			if ("extra".equals(extra)) {
 				/*
 				 * If you are going to implement something regarding to running the corrector, 
@@ -93,16 +125,29 @@ public class RunCorrector {
 
 			// If a gold file was provided, compare our correction to the gold correction
 			// and output the running accuracy
+			if(!query.equals(correctedQuery)){
+			  System.out.println("Changed: "+query);
+	      System.out.println("To: "+correctedQuery);	  
+			}
 			if (goldFileReader != null) {
 				String goldQuery = goldFileReader.readLine();
 				if (goldQuery.equals(correctedQuery)) {
 					yourCorrectCount++;
 				}
-				totalCount++;
+				else{
+		      System.out.println("Original: "+query);
+				  System.out.println("Corrected: "+correctedQuery);
+				  System.out.println("Gold: "+goldQuery);
+				}
+				totalCount++;				
 			}
-			System.out.println(correctedQuery);
 		}
 		queriesFileReader.close();
+	  
+		System.out.println("Correct "+ Integer.toString(yourCorrectCount));
+    System.out.println("Total "+ Integer.toString(totalCount));
+    System.out.println("Percentage "+ Double.toString((yourCorrectCount+0.0)/totalCount));
+    
 		long endTime   = System.currentTimeMillis();
 		long totalTime = endTime - startTime;
 		// System.out.println("RUNNING TIME: "+totalTime/1000+" seconds ");
