@@ -44,23 +44,32 @@ public class CandidateGenerator implements Serializable {
     //TODO: add merged words!!
 	  for (int i=0;i<qwords.length; i++){
 	    String back = "";
+	    //check front and back: if contains non-dictionary words, don't put in candidates
+      boolean flag = true;
 	    for (int j=i+1;j<qwords.length;j++){
+	      if (dict.count(qwords[j])==0){
+          flag = false;
+          break;
+	      }
 	      back = back + " " + qwords[j];
 	    }
-	    //TODO: check front and back: if contains non-dictionary words, don't put in candidates
-	    HashMap<String,Integer> possibles = editDistanceOne(qwords[i],dict);
-	    for(String possible: possibles.keySet()){
-	      candidates.put((front + possible + back).trim(), possibles.get(possible));
+	    if (!flag){
+	      front = front + qwords[i] + " ";
+	      continue;
 	    }
-	    
+	    Set<String> possibles = editDistanceOne(qwords[i],dict);
+	    for(String possible: possibles){
+	      candidates.put((front + possible + back).trim(), 1);
+	    }
+	    if (dict.count(qwords[i])==0)
+	      break;
 	    front = front + qwords[i] + " ";
 	  }
-	  
 		return candidates;
 	}
-	public HashMap<String,Integer> editDistanceOne(String qword, Dictionary dict){
+	public Set<String> editDistanceOne(String qword, Dictionary dict){
 	  //return strings of edit distance one, including splits, excluding merges
-	  HashMap<String,Integer> possibles = new HashMap<String,Integer>();
+	  Set<String> possibles = new HashSet<String>();
 	  Set<Pair<String,String>> splits = new HashSet<Pair<String,String>>();
 	  // splits
 	  for (int i=0; i<qword.length(); i++){
@@ -68,7 +77,7 @@ public class CandidateGenerator implements Serializable {
 	  }
 	  for (Pair<String,String> split:splits){
 	    if (dict.count(split.getFirst())!=0 && dict.count(split.getFirst())!=0)
-	    possibles.put(((split.getFirst()+" "+split.getSecond()).trim()),1);
+	    possibles.add((split.getFirst()+" "+split.getSecond()).trim());
 	  }
 	  // deletes
     for (Pair<String,String> split:splits){
@@ -80,13 +89,13 @@ public class CandidateGenerator implements Serializable {
         if (split.getSecond().length()==1 && split.getSecond().charAt(0)=='s')
           continue;
         if (dict.count(split.getFirst()+split.getSecond().substring(1))!=0)
-          possibles.put((split.getFirst()+split.getSecond().substring(1)),1);
+          possibles.add(split.getFirst()+split.getSecond().substring(1));
       }
     }      
     // transposes
 	  for (Pair<String,String> split:splits){
       if (split.getSecond().length()>1 && dict.count(split.getFirst()+split.getSecond().charAt(1)+split.getSecond().charAt(0)+split.getSecond().substring(2)) != 0)
-        possibles.put((split.getFirst()+split.getSecond().charAt(1)+split.getSecond().charAt(0)+split.getSecond().substring(2)),1);
+        possibles.add(split.getFirst()+split.getSecond().charAt(1)+split.getSecond().charAt(0)+split.getSecond().substring(2));
     }
 	  // replaces
 	  for (Pair<String,String> split:splits){
@@ -102,9 +111,9 @@ public class CandidateGenerator implements Serializable {
           if (split.getSecond().length()==1 && split.getSecond().charAt(0)=='s' && c ==' ')
             continue;
           if (c != ' ' && dict.count(split.getFirst()+ c +split.getSecond().substring(1))!=0)
-            possibles.put((split.getFirst()+ c +split.getSecond().substring(1)),1);
+            possibles.add(split.getFirst()+ c +split.getSecond().substring(1));
           if (c == ' ' && dict.count((split.getFirst()).trim()) != 0 && dict.count((split.getSecond().substring(1)).trim()) != 0)
-            possibles.put(((split.getFirst()+ c +split.getSecond().substring(1).trim())),2); 
+            possibles.add((split.getFirst()+ c +split.getSecond().substring(1).trim())); 
         }
       }
     }
@@ -112,9 +121,9 @@ public class CandidateGenerator implements Serializable {
 	  for (Pair<String,String> split:splits){
       for (Character c: alphabet){
         if (c != ' ' && dict.count(split.getFirst()+c+split.getSecond()) != 0)
-          possibles.put((split.getFirst()+c+split.getSecond()),1);
+          possibles.add(split.getFirst()+c+split.getSecond());
         if (c == ' ' && dict.count(split.getFirst()) != 0 && dict.count(split.getSecond()) != 0)
-          possibles.put(((split.getFirst()+c+split.getSecond()).trim()),1);
+          possibles.add((split.getFirst()+c+split.getSecond()).trim());
       }
     }
 	  return possibles;

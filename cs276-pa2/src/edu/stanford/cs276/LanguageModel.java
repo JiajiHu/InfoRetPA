@@ -47,6 +47,16 @@ public class LanguageModel implements Serializable {
 	public double interpolationProb(Pair<String,String> words, double lambda){
 	  return lambda*findUnaryProb(words.getSecond()) + (1.0-lambda)*(findBinaryProb(words));
 	}
+	
+	public double getLMScore(String current, double lambda){
+	  double score;
+	  String[] q_words = current.trim().split("\\s+");
+    score = Math.log(findUnaryProb(q_words[0]));
+    for (int i=1; i<q_words.length;i++){
+      score = score + Math.log(interpolationProb(new Pair<String,String> (q_words[i-1],q_words[i]), lambda));
+    }
+	  return score;
+	}
   /*********************************************/
 
 	public void constructDictionaries(String corpusFilePath)

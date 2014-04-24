@@ -77,6 +77,7 @@ public class RunCorrector {
 		
 		int totalCount = 0;
 		int yourCorrectCount = 0;
+		int totalCand = 0;
 		String query = null;
 	  /**************************************/
     double mu = 1;
@@ -98,14 +99,12 @@ public class RunCorrector {
 			
 			double score;
 			HashMap<String,Integer> candidates = candidateGen.getCandidates(query,languageModel.unaryFreq);
+		  totalCand = totalCand + candidates.size();
 			for(String current: candidates.keySet()){
 			  
-			  String[] q_words = current.trim().split("\\s+");
-        score = Math.log(languageModel.findUnaryProb(q_words[0]));
-        for (int i=1; i<q_words.length;i++){
-          score = score + Math.log(languageModel.interpolationProb(new Pair<String,String> (q_words[i-1],q_words[i]), lambda));
-        }
-        score = score + Math.log(nsm.ecm_.editProbability(query, current, candidates.get(current)));
+			  score = languageModel.getLMScore(current, lambda);
+			  
+        score = mu * score + Math.log(nsm.ecm_.editProbability(query, current, candidates.get(current)));
         if (score > highscore){
           highscore = score;
           correctedQuery = current;
@@ -125,17 +124,17 @@ public class RunCorrector {
 
 			// If a gold file was provided, compare our correction to the gold correction
 			// and output the running accuracy
-			if(!query.equals(correctedQuery)){
-			  System.out.println("Changed: "+query);
-	      System.out.println("To: "+correctedQuery);	  
-			}
+//			if(!query.equals(correctedQuery)){
+//			  System.out.println("Changed: "+query);
+//	      System.out.println("To: "+correctedQuery);	  
+//			}
 			if (goldFileReader != null) {
 				String goldQuery = goldFileReader.readLine();
 				if (goldQuery.equals(correctedQuery)) {
 					yourCorrectCount++;
 				}
 				else{
-		      System.out.println("Original: "+query);
+		      System.out.println("\nOriginal: "+query);
 				  System.out.println("Corrected: "+correctedQuery);
 				  System.out.println("Gold: "+goldQuery);
 				}
@@ -147,7 +146,8 @@ public class RunCorrector {
 		System.out.println("Correct "+ Integer.toString(yourCorrectCount));
     System.out.println("Total "+ Integer.toString(totalCount));
     System.out.println("Percentage "+ Double.toString((yourCorrectCount+0.0)/totalCount));
-    
+    System.out.println("Total candidates generated: "+Integer.toString(totalCand));
+
 		long endTime   = System.currentTimeMillis();
 		long totalTime = endTime - startTime;
 		// System.out.println("RUNNING TIME: "+totalTime/1000+" seconds ");
