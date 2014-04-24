@@ -41,37 +41,69 @@ public class CandidateGenerator implements Serializable {
 	  HashMap<String,Integer> candidates = new HashMap<String, Integer>();	
 		/****************************/
 	  candidates.put(query, 0);
-	  String[] qwords = query.trim().split("\\s+");
-    String front = "";
-    //TODO: add merged words!!
-	  for (int i=0;i<qwords.length; i++){
-	    String back = "";
-	    //check front and back: if contains non-dictionary words, don't put in candidates
-      boolean flag = true;
-	    for (int j=i+1;j<qwords.length;j++){
-	      if (dict.count(qwords[j])==0){
-          flag = false;
-          break;
-	      }
-	      back = back + " " + qwords[j];
-	    }
-	    if (!flag){
-	      front = front + qwords[i] + " ";
-	      continue;
-	    }
-	    Set<String> possibles = editDistanceOne(qwords[i],dict);
-	    for(String possible: possibles){
-	      candidates.put((front + possible + back).trim(), 1);
-	    }
-	    if (dict.count(qwords[i])==0)
-	      break;
-	    front = front + qwords[i] + " ";
+	  for(String possible: editDistanceOne(query, dict, true)){
+	    if (isValid(possible,dict))
+	      candidates.put(possible, 1);
+//	    for(String two: editDistanceOne(possible,dict, false)){
+//	      candidates.put(two, 2);
+//	    }
 	  }
 		return candidates;
 	}
 	
+	public Set<String> editDistanceOne(String query, Dictionary dict, boolean tolerate){
+	  Set<String> possibles = new HashSet<String>();
+	  String[] qwords = query.trim().split("\\s+");
+    String front = "";
+    for (int i=0;i<qwords.length; i++){
+      String back = "";
+      //check front and back: if contains non-dictionary words, don't put in candidates (if not tolerate)
+      boolean flag = true;
+      for (int j=i+2;j<qwords.length;j++){
+        if (dict.count(qwords[j])==0){
+          flag = false;
+          if (!tolerate)
+            break;
+        }
+        back = back + " " + qwords[j];
+      }
+      if (!tolerate && !flag){
+        front = front + qwords[i] + " ";
+        continue;
+      }
+      //try merging words`
+      if (i+1<qwords.length){
+        if(dict.count(qwords[i]+qwords[i+1])>0){
+          possibles.add(front + qwords[i] + qwords[i+1] + back);
+        }
+        back = " " + qwords[i+1] + back;        
+      }
+      
+      Set<String> words = editDistanceOneWords(qwords[i],dict);
+      for(String word: words){
+        possibles.add((front + word + back).trim());
+      }
+      if (!tolerate && dict.count(qwords[i])==0)
+        break;
+      front = front + qwords[i] + " ";
+    }
+	  
+	  return possibles;
+	}
+	
+	//decide if there are invalid words in a query
+	public boolean isValid(String query, Dictionary dict){
+	  String[] chars = query.trim().split("\\s+");
+	  for (int i=0; i<chars.length; i++){
+	    if (dict.count(chars[i])==0){
+        return false;
+	    }
+	  }
+	  return true;
+	}
+	
   //return strings of edit distance one, including splits, excluding merges
-  public Set<String> editDistanceOne(String qword, Dictionary dict){
+  public Set<String> editDistanceOneWords(String qword, Dictionary dict){
     // use rules or not: need rules to avoid stupid mistakes
     boolean rules = true;
     Character[] using = alphabet;
