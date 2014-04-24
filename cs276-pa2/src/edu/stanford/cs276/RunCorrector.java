@@ -77,10 +77,16 @@ public class RunCorrector {
 		
 		int totalCount = 0;
 		int yourCorrectCount = 0;
-		int totalCand = 0;
 		String query = null;
 	  /**************************************/
-    double mu = 1;
+		int totalCand = 0;
+    int wrong_unchanged = 0;
+    int w_changed_wrong = 0;
+    int w_changed_right = 0;
+    int right_unchanged = 0;
+    int right_changed_wrong = 0;
+		
+		double mu = 1;
     double lambda = 0.1;
 	  /**************************************/
     
@@ -124,16 +130,24 @@ public class RunCorrector {
 
 			// If a gold file was provided, compare our correction to the gold correction
 			// and output the running accuracy
-//			if(!query.equals(correctedQuery)){
-//			  System.out.println("Changed: "+query);
-//	      System.out.println("To: "+correctedQuery);	  
-//			}
 			if (goldFileReader != null) {
 				String goldQuery = goldFileReader.readLine();
 				if (goldQuery.equals(correctedQuery)) {
-					yourCorrectCount++;
+					if (query.equals(correctedQuery))
+					  right_unchanged++;
+					else
+					  w_changed_right++;
+				  yourCorrectCount++;
 				}
 				else{
+				  if (query.equals(correctedQuery))
+            wrong_unchanged++;
+          else{
+            if (query.equals(goldQuery))
+                right_changed_wrong++;
+            else
+              w_changed_wrong++;
+          }
 		      System.out.println("\nOriginal:  "+query);
 				  System.out.println("Corrected: "+correctedQuery);
 				  System.out.println("Gold:      "+goldQuery);
@@ -142,11 +156,18 @@ public class RunCorrector {
 			}
 		}
 		queriesFileReader.close();
-	  
+
 		System.out.println("\n***********************************************");
     System.out.println("Correct "+ Integer.toString(yourCorrectCount));
     System.out.println("Total "+ Integer.toString(totalCount));
     System.out.println("Percentage "+ Double.toString((yourCorrectCount+0.0)/totalCount));
+
+    System.out.println("Correct unchanged "+ Integer.toString(right_unchanged));
+    System.out.println("Wrong to right "+ Integer.toString(w_changed_right));
+    System.out.println("Wrong to wrong "+ Integer.toString(w_changed_wrong));
+    System.out.println("Wrong unchanged "+ Integer.toString(wrong_unchanged));
+    System.out.println("Correct to wrong "+ Integer.toString(right_changed_wrong));
+    
     System.out.println("Total candidates generated: "+Integer.toString(totalCand));
 
 		long endTime   = System.currentTimeMillis();
