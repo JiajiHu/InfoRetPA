@@ -134,16 +134,17 @@ public class RunCorrector {
 					yourCorrectCount++;
 				}
 				else{
-		      System.out.println("\nOriginal: "+query);
+		      System.out.println("\nOriginal:  "+query);
 				  System.out.println("Corrected: "+correctedQuery);
-				  System.out.println("Gold: "+goldQuery);
+				  System.out.println("Gold:      "+goldQuery);
 				}
 				totalCount++;				
 			}
 		}
 		queriesFileReader.close();
 	  
-		System.out.println("Correct "+ Integer.toString(yourCorrectCount));
+		System.out.println("\n***********************************************");
+    System.out.println("Correct "+ Integer.toString(yourCorrectCount));
     System.out.println("Total "+ Integer.toString(totalCount));
     System.out.println("Percentage "+ Double.toString((yourCorrectCount+0.0)/totalCount));
     System.out.println("Total candidates generated: "+Integer.toString(totalCand));
