@@ -44,7 +44,7 @@ public class CandidateGenerator implements Serializable {
 	  for(String possible: editDistanceOne(query, dict, true)){
 	    if (isValid(possible,dict))
 	      candidates.put(possible, 1);
-//	    for(String two: editDistanceOne(possible,dict, false)){
+//	    for(String two: editDistanceOne(possible, dict, false)){
 //	      candidates.put(two, 2);
 //	    }
 	  }

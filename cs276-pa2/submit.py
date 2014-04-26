@@ -224,6 +224,7 @@ def output(partIdx):
       print 'Calling ./runcorrector.sh (this might take a while)'
       start = time()
       res = subprocess.check_output(['./runcorrector.sh', 'uniform', tempoutfile + '/test/queries.txt'])
+      print res
       stats['time'] = time() - start
       stats['guess'] = res.splitlines()
         
@@ -237,6 +238,7 @@ def output(partIdx):
     print 'Calling ./runcorrector.sh (this might take a while)'
     start = time()
     res = subprocess.check_output(['./runcorrector.sh', 'empirical',  tempoutfile + '/test/queries.txt'])
+    print res
     stats['time'] = time() - start
     stats['guess'] = res.splitlines()
 
@@ -254,7 +256,8 @@ def output(partIdx):
       retcode = subprocess.check_call( ['./buildmodels.sh', 'data/corpus/', 'data/edit1s.txt', 'extra'] )
     print 'Calling ./runcorrector.sh (this might take a while)'
     start = time()
-    res = subprocess.check_output(['./runcorrector.sh', tempoutfile + '/test/queries.txt', 'extra'])
+    res = subprocess.check_output(['./runcorrector.sh', 'empirical', tempoutfile + '/test/queries.txt', 'extra'])
+    print res
     stats['time'] = time() - start
     stats['guess'] = res.splitlines()
 
