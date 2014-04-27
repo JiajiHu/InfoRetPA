@@ -132,6 +132,7 @@ public class EmpiricalCostModel implements EditCostModel{
 		System.out.println("==================================");
 
 		System.out.println("Done.");
+		}
 	}
 	
 	// You need to update this to calculate the proper empirical cost
