@@ -27,7 +27,8 @@ public class EmpiricalCostModel implements EditCostModel{
 		numChar = CandidateGenerator.alphanum.length;
 		Map<Character, Map<Character, Integer> > map;
 		Map<Character, Integer> mapCnt;
-		
+		Map<Character, Integer> temp;
+			
 		for(int i=0; i<numErrorType; i++){
 			map = new HashMap<Character, Map<Character, Integer>>();
 			count.add(map);
@@ -60,7 +61,6 @@ public class EmpiricalCostModel implements EditCostModel{
 			map = count.get(errorType);		// counter for corresponding error type
 			mapCnt = totalCount.get(errorType);	// map from char2 to count
 			
-			Map<Character, Integer> temp;
 			
 			// System.out.println("O: "+clean+" W: "+noisy);
 			// printError(error);
@@ -80,57 +80,156 @@ public class EmpiricalCostModel implements EditCostModel{
 				temp.put(post, 1);
 				map.put(pre, temp);
 			}
-			if(post == ' '){
-				System.out.println("O: "+clean+" W: "+noisy);
-				printError(error);
-
-			}
-			
 		}
 
 		input.close();
-		// System.out.println("size of del keySet: "+count.get(0).keySet().size() );
-		// for(char c: count.get(0).keySet()){
-		// 	System.out.print("pre: "+c);
-		// 	System.out.print(" ");
-		// 	System.out.print("setsize: "+count.get(0).get(c).keySet().size() );
-		// }
 
+		double num,den;
 		System.out.println("delete:");
 		map = count.get(0);
 		for(char c: map.keySet() ){
 			System.out.println("pre: "+c);
 			printMap(map.get(c));
 		}
+		mapCnt = totalCount.get(0);
+		for(char c: mapCnt.keySet() ){
+			System.out.println("pre: "+c+" total count: "+mapCnt.get(c) );
+		}
+
+		for(char pre: CandidateGenerator.alphanum){
+			System.out.println("pre: "+pre);
+			double d = 0.0;
+			temp = map.get(pre);
+			int totalnum = 0;
+			if(map.containsKey(pre) ){
+				int cnt = mapCnt.get(pre);
+				System.out.println("total count: "+cnt);
+				den = 0.0 + mapCnt.get(pre) + numChar;
+				System.out.println("den: "+den);
+
+				for(char post: CandidateGenerator.alphanum){
+					System.out.println("post: "+post);
+					if(temp.containsKey(post)){
+						num = 1.0+temp.get(post);
+					}else{
+						num = 1.0;
+					}
+					System.out.println("num: "+num);					
+					totalnum += num;
+					d += num/den;
+				}
+				System.out.println("total num: "+totalnum);
+					
+			}else{
+				System.out.println("pre not contained in training set");
+			}
+			
+			System.out.println("pro sum: "+d);
+		}
 		System.out.println("==================================");
 		
+
+
 		System.out.println("insert:");
-		map = count.get(0);
+		map = count.get(1);
 		for(char c: map.keySet() ){
 			System.out.println("pre: "+c);
 			printMap(map.get(c));
+		}
+		mapCnt = totalCount.get(1);
+		for(char c: mapCnt.keySet() ){
+			System.out.println("pre: "+c+" total count: "+mapCnt.get(c) );
+		}
+		
+		for(char pre: CandidateGenerator.alphanum){
+			System.out.println("pre: "+pre);
+			double d = 0.0;
+			temp = map.get(pre);
+			if(map.containsKey(pre) ){
+				den = 0.0 + mapCnt.get(pre) + numChar;
+				for(char post: CandidateGenerator.alphanum){
+					if(temp.containsKey(post)){
+						num = 1.0+temp.get(post);
+					}else{
+						num = 1.0;
+					}
+					d += num/den;
+				}	
+			}else{
+				System.out.println("pre not contained in training set");
+			}
+			System.out.println("pro sum: "+d);
 		}
 		System.out.println("==================================");
 
-		System.out.println("substitute:");
-		map = count.get(0);
-		for(char c: map.keySet() ){
-			System.out.println("pre: "+c);
-			printMap(map.get(c));
-		}
-		System.out.println("==================================");
+		// System.out.println("substitute:");
+		// map = count.get(2);
+		// for(char c: map.keySet() ){
+		// 	System.out.println("pre: "+c);
+		// 	printMap(map.get(c));
+		// }
+		// mapCnt = totalCount.get(2);
+		// for(char c: mapCnt.keySet() ){
+		// 	System.out.println("pre: "+c+" total count: "+mapCnt.get(c) );
+		// }
+		
+		// for(char pre: CandidateGenerator.alphanum){
+		// 	System.out.println("pre: "+pre);
+		// 	double d = 0.0;
+		// 	temp = map.get(pre);
+		// 	if(map.containsKey(pre) ){
+		// 		den = 0.0 + mapCnt.get(pre) + numChar;
+		// 		for(char post: CandidateGenerator.alphanum){
+		// 			if(temp.containsKey(post)){
+		// 				num = 1.0+temp.get(post);
+		// 			}else{
+		// 				num = 1.0;
+		// 			}
+		// 			d += num/den;
+		// 		}	
+		// 	}else{
+		// 		System.out.println("pre not contained in training set");
+		// 	}
+		// 	System.out.println("pro sum: "+d);
+		// }
+		// System.out.println("==================================");
 
-		System.out.println("transpose:");
-		map = count.get(0);
-		for(char c: map.keySet() ){
-			System.out.println("pre: "+c);
-			printMap(map.get(c));
-		}
-		System.out.println("==================================");
+		// System.out.println("transpose:");
+		// map = count.get(3);
+		// for(char c: map.keySet() ){
+		// 	System.out.println("pre: "+c);
+		// 	printMap(map.get(c));
+		// }
+		// mapCnt = totalCount.get(3);
+		// for(char c: mapCnt.keySet() ){
+		// 	System.out.println("pre: "+c+" total count: "+mapCnt.get(c) );
+		// }
+
+		// for(char pre: CandidateGenerator.alphanum){
+		// 	System.out.println("pre: "+pre);
+		// 	double d = 0.0;
+		// 	temp = map.get(pre);
+		// 	if(map.containsKey(pre) ){
+		// 		den = 0.0 + mapCnt.get(pre) + numChar;
+		// 		for(char post: CandidateGenerator.alphanum){
+		// 			if(temp.containsKey(post)){
+		// 				num = 1.0+temp.get(post);
+		// 			}else{
+		// 				num = 1.0;
+		// 			}
+		// 			d += num/den;
+		// 		}	
+		// 	}else{
+		// 		System.out.println("pre not contained in training set");
+		// 	}
+		// 	System.out.println("pro sum: "+d);
+		// }
+		// System.out.println("==================================");
 
 		System.out.println("Done.");
-		}
 	}
+	
+
 	
 	// You need to update this to calculate the proper empirical cost
 	@Override
@@ -152,13 +251,13 @@ public class EmpiricalCostModel implements EditCostModel{
 		
 		if(distance == 1){
 			// System.out.println("dis == 1");
-			System.out.println("O: "+original + " CE: "+R);
+			// System.out.println("O: "+original + " CE: "+R);
 			error = detectDistanceOne (original, R);
 			errorType = error.errorType;
 			pre = error.pre;
 			post = error.post;
 
-			System.out.println("pre: "+pre + " post: " +post);
+			// System.out.println("pre: "+pre + " post: " +post);
 
 			double num=0.0, den=0.0;
 			Map<Character, Map<Character, Integer>> map = count.get(errorType);
@@ -176,11 +275,11 @@ public class EmpiricalCostModel implements EditCostModel{
 				// System.out.println("map containsKey: "+pre);
 				// System.out.println("num: "+num+" den: "+den);
 				
-				System.out.println("1 prob="+num/den);
+				// System.out.println("1 prob="+num/den);
 				return Math.pow(EDIT_PROB, distance)*num/den;
 			}else{
 				// System.out.println("return 1.0/numChar, numChar: "+numChar);
-				System.out.println("2 prob="+1/numChar);
+				// System.out.println("2 prob="+1/numChar);
 				return Math.pow(EDIT_PROB, distance)/numChar;
 			}
 
