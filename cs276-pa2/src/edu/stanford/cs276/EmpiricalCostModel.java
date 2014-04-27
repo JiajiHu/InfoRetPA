@@ -62,6 +62,9 @@ public class EmpiricalCostModel implements EditCostModel{
 			
 			Map<Character, Integer> temp;
 			
+			// System.out.println("O: "+clean+" W: "+noisy);
+			// printError(error);
+			
 			if(map.containsKey(pre)){
 				mapCnt.put(pre, mapCnt.get(pre)+1);
 				
@@ -80,17 +83,54 @@ public class EmpiricalCostModel implements EditCostModel{
 			if(post == ' '){
 				System.out.println("O: "+clean+" W: "+noisy);
 				printError(error);
+
+			if(post == ' '){
+				System.out.println("O: "+clean+" W: "+noisy);
+			printError(error);
 			}
 			
 		}
 
 		input.close();
-		System.out.println("size of del keySet: "+count.get(0).keySet().size() );
-		for(char c: count.get(0).keySet()){
-			System.out.print("pre: "+c);
-			System.out.print(" ");
-			System.out.print("setsize: "+count.get(0).get(c).keySet().size() );
+		// System.out.println("size of del keySet: "+count.get(0).keySet().size() );
+		// for(char c: count.get(0).keySet()){
+		// 	System.out.print("pre: "+c);
+		// 	System.out.print(" ");
+		// 	System.out.print("setsize: "+count.get(0).get(c).keySet().size() );
+		// }
+
+		System.out.println("delete:");
+		map = count.get(0);
+		for(char c: map.keySet() ){
+			System.out.println("pre: "+c);
+			printMap(map.get(c));
 		}
+		System.out.println("==================================");
+		
+		System.out.println("insert:");
+		map = count.get(0);
+		for(char c: map.keySet() ){
+			System.out.println("pre: "+c);
+			printMap(map.get(c));
+		}
+		System.out.println("==================================");
+
+		System.out.println("substitute:");
+		map = count.get(0);
+		for(char c: map.keySet() ){
+			System.out.println("pre: "+c);
+			printMap(map.get(c));
+		}
+		System.out.println("==================================");
+
+		System.out.println("transpose:");
+		map = count.get(0);
+		for(char c: map.keySet() ){
+			System.out.println("pre: "+c);
+			printMap(map.get(c));
+		}
+		System.out.println("==================================");
+
 		System.out.println("Done.");
 	}
 	
@@ -115,10 +155,13 @@ public class EmpiricalCostModel implements EditCostModel{
 		if(distance == 1){
 			// System.out.println("dis == 1");
 			// System.out.println("O: "+original + " C: "+R);
+			System.out.println("O: "+original + " CE: "+R);
 			error = detectDistanceOne (original, R);
 			errorType = error.errorType;
 			pre = error.pre;
 			post = error.post;
+
+			System.out.println("pre: "+pre + " post: " +post);
 
 			double num=0.0, den=0.0;
 			Map<Character, Map<Character, Integer>> map = count.get(errorType);
@@ -215,6 +258,35 @@ public class EmpiricalCostModel implements EditCostModel{
 		// System.out.println("errorType: "+errorType + " pre: "+pre +" post: "+post );
 		return new Error(errorType, pre, post);
 	}
+
+	private void printMap (Map<Character, Integer> map) {
+		if(map == null){
+			System.out.println("empty map");
+		}else{
+			String str = "";
+			for(char c: map.keySet() ){
+				str = str + c+":"+map.get(c)+" ";
+			}
+			System.out.println(str);
+		}
+	}
+	private void printError (Error e){
+		String str = "";
+		int type = e.errorType;
+		switch(type){
+			case 0: str = str+"del ";
+					break;
+			case 1: str = str+"ins ";
+					break;
+			case 2: str = str+"sub ";
+					break;
+			case 3: str = str+"trans ";
+					break;
+			default: 
+		}
+		str = str + "pre: "+e.pre + " post: "+e.post +" ";
+		System.out.println(str);
+	}
 }
 class Error {
 	int errorType;		// 0:del 1:ins 2:sub 3:trans
@@ -223,8 +295,8 @@ class Error {
 	
 	public Error(){
 		errorType = -1;
-		pre = ' ';
-		post = ' ';
+		pre = '@';
+		post = '@';
 	}
 	public Error(int et, char _pre, char _post){
 		errorType = et;

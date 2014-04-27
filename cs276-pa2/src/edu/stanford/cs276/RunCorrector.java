@@ -69,7 +69,7 @@ public class RunCorrector {
 		// Load models from disk
 		languageModel = LanguageModel.load();
 		nsm = NoisyChannelModel.load();
-	  /*************************************/
+	    /*************************************/
 		candidateGen = CandidateGenerator.get();
 		/*************************************/
 		BufferedReader queriesFileReader = new BufferedReader(new FileReader(new File(queryFilePath)));
@@ -78,17 +78,17 @@ public class RunCorrector {
 		int totalCount = 0;
 		int yourCorrectCount = 0;
 		String query = null;
-	  /**************************************/
+	    /**************************************/
 		int totalCand = 0;
-    int wrong_unchanged = 0;
-    int w_changed_wrong = 0;
-    int w_changed_right = 0;
-    int right_unchanged = 0;
-    int right_changed_wrong = 0;
-		
+	    int wrong_unchanged = 0;
+	    int w_changed_wrong = 0;
+	    int w_changed_right = 0;
+	    int right_unchanged = 0;
+	    int right_changed_wrong = 0;
+			
 		double mu = 1;
-    double lambda = 0.1;
-	  /**************************************/
+	    double lambda = 0.1;
+		/**************************************/
     
 		/*
 		 * Each line in the file represents one query.  We loop over each query and find
@@ -99,24 +99,22 @@ public class RunCorrector {
 			/*
 			 * Your code here
 			 */
-      String correctedQuery = query;
+      		String correctedQuery = query;
 			/**************************************/
 			double highscore = Double.NEGATIVE_INFINITY;
 			
 			double score;
 			HashMap<String,Integer> candidates = candidateGen.getCandidates(query,languageModel.unaryFreq);
-		  totalCand = totalCand + candidates.size();
+		  	totalCand = totalCand + candidates.size();
 			for(String current: candidates.keySet()){
-			  
-			  score = languageModel.getLMScore(current, lambda);
-			  
-        score = mu * score + Math.log(nsm.ecm_.editProbability(query, current, candidates.get(current)));
-        if (score > highscore){
-          highscore = score;
-          correctedQuery = current;
-        }
+			  	score = languageModel.getLMScore(current, lambda);
+			  	score = mu * score + Math.log(nsm.ecm_.editProbability(query, current, candidates.get(current)));
+		        if (score > highscore){
+		          highscore = score;
+		          correctedQuery = current;
+		        }
 			}
-      /**************************************/			
+      		/**************************************/			
 			if ("extra".equals(extra)) {
 				/*
 				 * If you are going to implement something regarding to running the corrector, 
@@ -134,23 +132,23 @@ public class RunCorrector {
 				String goldQuery = goldFileReader.readLine();
 				if (goldQuery.equals(correctedQuery)) {
 					if (query.equals(correctedQuery))
-					  right_unchanged++;
+					  	right_unchanged++;
 					else
-					  w_changed_right++;
-				  yourCorrectCount++;
+					  	w_changed_right++;
+				  	yourCorrectCount++;
 				}
 				else{
-				  if (query.equals(correctedQuery))
-            wrong_unchanged++;
-          else{
-            if (query.equals(goldQuery))
-                right_changed_wrong++;
-            else
-              w_changed_wrong++;
-          }
-		      System.out.println("\nOriginal:  "+query);
-				  System.out.println("Corrected: "+correctedQuery);
-				  System.out.println("Gold:      "+goldQuery);
+					if (query.equals(correctedQuery))
+				  		wrong_unchanged++;
+          		  	else{
+            			if (query.equals(goldQuery))
+                			right_changed_wrong++;
+            			else
+              				w_changed_wrong++;
+         		}
+			      	System.out.println("\nOriginal:  "+query);
+					System.out.println("Corrected: "+correctedQuery);
+					System.out.println("Gold:      "+goldQuery);
 				}
 				totalCount++;				
 			}
@@ -158,17 +156,17 @@ public class RunCorrector {
 		queriesFileReader.close();
 
 		System.out.println("\n***********************************************");
-    System.out.println("Correct "+ Integer.toString(yourCorrectCount));
-    System.out.println("Total "+ Integer.toString(totalCount));
-    System.out.println("Percentage "+ Double.toString((yourCorrectCount+0.0)/totalCount));
+	    System.out.println("Correct "+ Integer.toString(yourCorrectCount));
+	    System.out.println("Total "+ Integer.toString(totalCount));
+	    System.out.println("Percentage "+ Double.toString((yourCorrectCount+0.0)/totalCount));
 
-    System.out.println("Correct unchanged "+ Integer.toString(right_unchanged));
-    System.out.println("Wrong to right "+ Integer.toString(w_changed_right));
-    System.out.println("Wrong to wrong "+ Integer.toString(w_changed_wrong));
-    System.out.println("Wrong unchanged "+ Integer.toString(wrong_unchanged));
-    System.out.println("Correct to wrong "+ Integer.toString(right_changed_wrong));
-    
-    System.out.println("Total candidates generated: "+Integer.toString(totalCand));
+	    System.out.println("Correct unchanged "+ Integer.toString(right_unchanged));
+	    System.out.println("Wrong to right "+ Integer.toString(w_changed_right));
+	    System.out.println("Wrong to wrong "+ Integer.toString(w_changed_wrong));
+	    System.out.println("Wrong unchanged "+ Integer.toString(wrong_unchanged));
+	    System.out.println("Correct to wrong "+ Integer.toString(right_changed_wrong));
+	    
+	    System.out.println("Total candidates generated: "+Integer.toString(totalCand));
 
 		long endTime   = System.currentTimeMillis();
 		long totalTime = endTime - startTime;

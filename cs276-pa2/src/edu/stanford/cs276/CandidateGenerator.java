@@ -39,8 +39,7 @@ public class CandidateGenerator implements Serializable {
 	// Generate all candidates for the target query
 	public HashMap<String,Integer> getCandidates(String query, Dictionary dict) throws Exception {
 	  HashMap<String,Integer> candidates = new HashMap<String, Integer>();	
-		/****************************/
-	  candidates.put(query, 0);
+		candidates.put(query, 0);
 	  for(String possible: editDistanceOne(query, dict, true)){
 	    if (isValid(possible,dict) && !candidates.containsKey(possible))
 	      candidates.put(possible, 1);
@@ -48,6 +47,7 @@ public class CandidateGenerator implements Serializable {
 //	      if (!candidates.containsKey(two))  
 //	        candidates.put(two, 2);
 //	    }
+
 	  }
 		return candidates;
 	}
@@ -171,6 +171,5 @@ public class CandidateGenerator implements Serializable {
     }
 	  return possibles;
 	}
-  /****************************/
 
 }
