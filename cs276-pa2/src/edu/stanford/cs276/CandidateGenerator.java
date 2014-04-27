@@ -42,11 +42,12 @@ public class CandidateGenerator implements Serializable {
 		/****************************/
 	  candidates.put(query, 0);
 	  for(String possible: editDistanceOne(query, dict, true)){
-	    if (isValid(possible,dict))
+	    if (isValid(possible,dict) && !candidates.containsKey(possible))
 	      candidates.put(possible, 1);
-//	    for(String two: editDistanceOne(possible, dict, false)){
-//	      candidates.put(two, 2);
-//	    }
+	    for(String two: editDistanceOne(possible, dict, false)){
+	      if (!candidates.containsKey(two))  
+	        candidates.put(two, 2);
+	    }
 	  }
 		return candidates;
 	}
@@ -105,7 +106,7 @@ public class CandidateGenerator implements Serializable {
   //return strings of edit distance one, including splits, excluding merges
   public Set<String> editDistanceOneWords(String qword, Dictionary dict){
     // use rules or not: need rules to avoid stupid mistakes
-    boolean rules = true;
+    boolean rules = false;
     Character[] using = alphabet;
     
 	  Set<String> possibles = new HashSet<String>();
