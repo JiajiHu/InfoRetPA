@@ -77,6 +77,10 @@ public class EmpiricalCostModel implements EditCostModel{
 				temp.put(post, 1);
 				map.put(pre, temp);
 			}
+			if(post == ' '){
+				System.out.println("O: "+clean+" W: "+noisy);
+				printError(error);
+			}
 			
 		}
 
@@ -110,7 +114,7 @@ public class EmpiricalCostModel implements EditCostModel{
 		
 		if(distance == 1){
 			// System.out.println("dis == 1");
-			System.out.println("O: "+original + " C: "+R);
+			// System.out.println("O: "+original + " C: "+R);
 			error = detectDistanceOne (original, R);
 			errorType = error.errorType;
 			pre = error.pre;
@@ -121,8 +125,6 @@ public class EmpiricalCostModel implements EditCostModel{
 			Map<Character, Integer> mapCnt = totalCount.get(errorType);
 			Map<Character, Integer> temp;
 			
-
-
 			if(map.containsKey(pre)){
 				den = 0.0 + mapCnt.get(pre) + numChar;
 				temp = map.get(pre);
