@@ -10,11 +10,9 @@ public class UniformCostModel implements EditCostModel {
 		/*
 		 * Your code here
 		 */
-	  /*******************************/
 	  if (distance == 0){
 	    return CORRECT_PROB;
 	  }
 	  return Math.pow(EDIT_PROB, distance);
-	  /*******************************/
-    }
+	  }
 }
