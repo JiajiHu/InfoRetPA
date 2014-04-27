@@ -84,9 +84,6 @@ public class EmpiricalCostModel implements EditCostModel{
 				System.out.println("O: "+clean+" W: "+noisy);
 				printError(error);
 
-			if(post == ' '){
-				System.out.println("O: "+clean+" W: "+noisy);
-			printError(error);
 			}
 			
 		}
@@ -154,7 +151,6 @@ public class EmpiricalCostModel implements EditCostModel{
 		
 		if(distance == 1){
 			// System.out.println("dis == 1");
-			// System.out.println("O: "+original + " C: "+R);
 			System.out.println("O: "+original + " CE: "+R);
 			error = detectDistanceOne (original, R);
 			errorType = error.errorType;
