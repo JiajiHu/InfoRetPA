@@ -15,6 +15,7 @@ public class EmpiricalCostModel implements EditCostModel{
 															// list[2]:sub, list[3]:trans
 	List<Map<Character, Integer>> totalCount; 		// total count of a char in mistake
 	static double CORRECT_PROB = 0.95;
+	static double EDIT_PROB = 0.05;
 	int numChar;
 
 	public EmpiricalCostModel(String editsFile) throws IOException {
@@ -134,11 +135,11 @@ public class EmpiricalCostModel implements EditCostModel{
 				// System.out.println("num: "+num+" den: "+den);
 				
 				System.out.println("1 prob="+num/den);
-				return num/den;
+				return Math.pow(EDIT_PROB, distance)*num/den;
 			}else{
 				// System.out.println("return 1.0/numChar, numChar: "+numChar);
 				System.out.println("2 prob="+1/numChar);
-				return 1.0/numChar;
+				return Math.pow(EDIT_PROB, distance)/numChar;
 			}
 
 		}else if(distance == 2){
