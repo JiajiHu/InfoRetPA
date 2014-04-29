@@ -3,7 +3,7 @@ package edu.stanford.cs276;
 public class UniformCostModel implements EditCostModel {
 	
   static double CORRECT_PROB = 0.95;
-  static double EDIT_PROB = 0.01;
+  static double EDIT_PROB = 0.03;
 
   @Override
 	public double editProbability(String original, String R, int distance) {

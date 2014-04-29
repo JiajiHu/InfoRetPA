@@ -14,10 +14,8 @@ public class RunCorrector {
 
 	public static LanguageModel languageModel;
 	public static NoisyChannelModel nsm;
-  /*************************************/
-	public static CandidateGenerator candidateGen;
-  /*************************************/
-
+  public static CandidateGenerator candidateGen;
+  
 	public static void main(String[] args) throws Exception {
 		
 		long startTime = System.currentTimeMillis();
@@ -69,25 +67,24 @@ public class RunCorrector {
 		// Load models from disk
 		languageModel = LanguageModel.load();
 		nsm = NoisyChannelModel.load();
-	    /*************************************/
 		candidateGen = CandidateGenerator.get();
-		/*************************************/
 		BufferedReader queriesFileReader = new BufferedReader(new FileReader(new File(queryFilePath)));
 		nsm.setProbabilityType(uniformOrEmpirical);
 		
 		int totalCount = 0;
 		int yourCorrectCount = 0;
 		String query = null;
-	    /**************************************/
+	
+		/**************************************/
 		int totalCand = 0;
-	    int wrong_unchanged = 0;
-	    int w_changed_wrong = 0;
-	    int w_changed_right = 0;
-	    int right_unchanged = 0;
-	    int right_changed_wrong = 0;
+	  int wrong_unchanged = 0;
+	  int w_changed_wrong = 0;
+	  int w_changed_right = 0;
+	  int right_unchanged = 0;
+	  int right_changed_wrong = 0;
 			
-		double mu = 1;
-	    double lambda = 0.1;
+		double mu = 0.6;
+	  double lambda = 0.05;
 		/**************************************/
     
 		/*
@@ -96,26 +93,22 @@ public class RunCorrector {
 		 */
 		while ((query = queriesFileReader.readLine()) != null) {
 			
-			/*
-			 * Your code here
-			 */
-      		String correctedQuery = query;
-			/**************************************/
+      String correctedQuery = query;
 			double highscore = Double.NEGATIVE_INFINITY;
 			
 			double score;
-			HashMap<String,Integer> candidates = candidateGen.getCandidates(query,languageModel.unaryFreq);
-		  	totalCand = totalCand + candidates.size();
+      
+      HashMap<String,Integer> candidates = candidateGen.getCandidates(query,languageModel.unaryFreq);
+		  totalCand = totalCand + candidates.size();
 			for(String current: candidates.keySet()){
-			  	score = languageModel.getLMScore(current, lambda);
-			  	score = mu * score + Math.log(nsm.ecm_.editProbability(query, current, candidates.get(current)));
-		        if (score > highscore){
-		          highscore = score;
-		          correctedQuery = current;
-		        }
+			  score = languageModel.getLMScore(current, lambda);
+			  score = mu * score + Math.log(nsm.ecm_.editProbability(query, current, candidates.get(current)));
+		    if (score > highscore){
+		      highscore = score;
+		      correctedQuery = current;
+		    }
 			}
-      		/**************************************/			
-			if ("extra".equals(extra)) {
+  		if ("extra".equals(extra)) {
 				/*
 				 * If you are going to implement something regarding to running the corrector, 
 				 * you can add code here. Feel free to move this code block to wherever 
@@ -146,8 +139,8 @@ public class RunCorrector {
             			else
               				w_changed_wrong++;
          		}
-			      	System.out.println("\nOriginal:  "+query);
-					System.out.println("Corrected: "+correctedQuery);
+					System.out.println("\nOriginal:  "+query);
+		      System.out.println("Corrected: "+correctedQuery);
 					System.out.println("Gold:      "+goldQuery);
 				}
 				totalCount++;				
