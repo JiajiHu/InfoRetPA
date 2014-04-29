@@ -20,23 +20,16 @@ import edu.stanford.cs276.util.Pair;
 public class LanguageModel implements Serializable {
 
 	private static LanguageModel lm_;
-	/* Feel free to add more members here.
-	 * You need to implement more methods here as needed.
-	 * 
-	 * Your code here ...
-	 */
-	/*********************************************/
+
 	public Dictionary unaryFreq = new Dictionary();
 	public BinDictionary binaryFreq = new BinDictionary();
-  /*********************************************/
   
 	// Do not call constructor directly since this is a Singleton
 	private LanguageModel(String corpusFilePath) throws Exception {
 		constructDictionaries(corpusFilePath);
 	}
 
-  /*********************************************/
-	public double findUnaryProb(String word){
+  public double findUnaryProb(String word){
 	  return (unaryFreq.count(word)+0.0)/unaryFreq.termCount();
 	}
 	
@@ -57,7 +50,6 @@ public class LanguageModel implements Serializable {
       }
 	  return score;
 	}
-  /*********************************************/
 
 	public void constructDictionaries(String corpusFilePath)
 			throws Exception {
@@ -72,10 +64,6 @@ public class LanguageModel implements Serializable {
 			BufferedReader input = new BufferedReader(new FileReader(file));
 			String line = null;
 			while ((line = input.readLine()) != null) {
-				/*
-				 * Your code here
-				 */
-			  /*********************************************/
 			  String[] tokens = line.trim().split("\\s+");
 			  for (int i = 0; i < tokens.length; i++) {
 			    unaryFreq.add(tokens[i]);
@@ -84,7 +72,6 @@ public class LanguageModel implements Serializable {
 			      binaryFreq.add(seq);
 			    }
 			  }
-			  /*********************************************/
 			}
 			input.close();
 		}
