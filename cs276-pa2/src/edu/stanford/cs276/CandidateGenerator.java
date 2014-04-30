@@ -3,9 +3,7 @@ package edu.stanford.cs276;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
-import java.lang.Object;
 
 import edu.stanford.cs276.util.Dictionary;
 import edu.stanford.cs276.util.Pair;
