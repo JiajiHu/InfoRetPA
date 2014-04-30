@@ -168,6 +168,8 @@ public class CandidateGenerator implements Serializable {
   //decide if there are invalid words in a query
   public boolean isValid(String query, Dictionary dict){
     String[] chars = query.split("\\s+");
+    if (!query.trim().equals(query))
+      return false;
     for (int i=0; i<chars.length; i++){
       if (dict.count(chars[i])==0){
         return false;
