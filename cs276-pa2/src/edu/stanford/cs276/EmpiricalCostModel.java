@@ -100,59 +100,61 @@ public class EmpiricalCostModel implements EditCostModel{
 		/*
 		 * Your code here
 		 */
-	  int distance = pair.getSecond();
-	  String prev = pair.getFirst();
+		int distance = pair.getSecond();
+		String prev = pair.getFirst();
 		// System.out.println("run editProbability");
 		if(distance == 0){
 			// System.out.println("dis == 0");
 			return CORRECT_PROB;
 		}
-		original = original.trim();
-		R = R.trim();
+		//original = original.trim();
+		//R = R.trim();
 		
 		Error error;
-		//Error[] errors;
-		int errorType;
-		String errorPair, c;
-		Map<String, Integer> map;
+		Error[] errors = new Error[2];
+		double prob;
 		
 		if(distance == 1){
 			// System.out.println("dis == 1");
 			// System.out.println("O: "+original + " CE: "+R);
 			error = detectDistanceOne (original, R);
-			errorType = error.errorType;
-			errorPair = error.errorPair;
-			map = count.get(errorType);
-			
-			// System.out.println("pre: "+pre + " post: " +post);
-			double num=1.0, den=numChar;
-			
-			if( errorType == 0 || errorType == 3){	// del or trans
-				assert(errorPair.length() == 2): "wrong errorPair length";
-				if(map.containsKey(errorPair))
-					num += map.get(errorPair);
-				if(pairCount.containsKey(errorPair))
-					den += pairCount.get(errorPair);
-			}else{	// ins or sub
-				assert(errorType == 1 || errorType == 2): "wrong errorType";
-				if(map.containsKey(errorPair))
-					num += map.get(errorPair);
-				if(singleCount.containsKey(errorPair.substring(0,1) ))
-					den += singleCount.get(errorPair.substring(0,1) );
-			}
-			
-			return num/den;
-
+			prob = calculateProb (error);
+			return prob;
 		}else if(distance == 2){
-			// errors = detectDistanceTwo (original, R); 
-			// System.out.println("dis == 2");			
-			return 0.0001;
+			double prob1, prob2;
+			errors[0] = detectDistanceOne (original, prev);
+			errors[1] = detectDistanceOne (prev, R);
+			prob1 = calculateProb (errors[0]);
+			prob2 = calculateProb (errors[1]);
+			prob = prob1*prob2;
+			return prob;
 		}else{
 			assert(distance <= 2): "can't process distance more than 2";
-			return 0.5;
+			return 1e-4;
 		}
 	}
+	private double calculateProb (Error error){
+		int errorType = error.errorType;
+		String errorPair = error.errorPair;
+		Map<String, Integer> map = count.get(errorType);
+		double num=1.0, den=numChar;
+		
+		if( errorType == 0 || errorType == 3){	// del or trans
+			assert(errorPair.length() == 2): "wrong errorPair length";
+			if(map.containsKey(errorPair))
+				num += map.get(errorPair);
+			if(pairCount.containsKey(errorPair))
+				den += pairCount.get(errorPair);
+		}else{	// ins or sub
+			assert(errorType == 1 || errorType == 2): "wrong errorType";
+			if(map.containsKey(errorPair))
+				num += map.get(errorPair);
+			if(singleCount.containsKey(errorPair.substring(0,1) ))
+				den += singleCount.get(errorPair.substring(0,1) );
+		}
+		return num/den;
 
+	}
 	private Error detectDistanceOne (String original, String R){
 		int errorType;
 		int lenOriginal = original.length();
@@ -189,6 +191,8 @@ public class EmpiricalCostModel implements EditCostModel{
 		}else{	// sub OR trans
 			assert(lenOriginal == lenR): "original and wrong doesn't have edit distance 1";
 			i=0;
+			System.out.println ("O: "+original + "W: "+R);
+			System.out.println ("O len: "+lenOriginal + "W len: "+lenR);
 			while(i<lenOriginal-1 && original.charAt(i) == R.charAt(i) )
 				i++;
 			if(i != lenOriginal-1 && original.charAt(i) == R.charAt(i+1) && original.charAt(i+1) == R.charAt(i)){
@@ -233,107 +237,6 @@ public class EmpiricalCostModel implements EditCostModel{
 		str = str + e.errorPair;
 		System.out.println(str);
 	}
-	
-	
-	/*
-		private Error[] detectDistanceTwo (String original, String R){
-		Error[] errors = new Error[2];
-		int lenOriginal = original.length();
-		int lenR = R.length();
-		int i;
-		char pre, post;
-		String mid;
-
-		if(lenOriginal == lenR + 2){	// 2 deletion
-			i = 0;
-			while(i<lenR && original.charAt(i) == R.charAt(i) )
-				i++;
-			if(i == 0){
-				pre = ' ';
-				post = original.charAt(0);
-			}else{
-				pre = original.charAt(i-1);
-				post = original.charAt(i);
-			}
-			errors[0] = new Error(0, pre, post);
-			mid = new StringBuilder(R).insert(i, original.charAt(i) ).toString();
-			errors[1] = detectDistanceOne(original, mid);
-			assert(errors[1].errorType == 0): "wrong error type in double deletion in detectDistanceTwo";
-
-		}else if(lenOriginal == lenR - 2){	// 2 insertion
-			i = 0;
-			while(i<lenOriginal && original.charAt(i) == R.charAt(i) )
-				i++;
-			if(i == 0){
-				pre = ' ';
-				post = R.charAt(0);
-			}else{
-				pre = R.charAt(i-1);
-				post = R.charAt(i);
-			}
-			errors[0] = new Error(1, pre, post);
-			mid = new StringBuilder(R).deleteCharAt(i).toString();
-			errors[1] = detectDistanceOne(original, mid);
-			assert(error[1].errorType == 1): "wrong error type in double insertion in detectDistanceTwo";
-
-		}else if(lenOriginal == lenR + 1){	// 1 deletion + 1 sub/trans
-			// 1. detect deletion: inter-word deletion OR intra-word deletion
-			String[] originalWords = original.split("\\s+"); 
-			String[] RWords = R.split("\\s+");
-			int j=0, index1=0, index2=-1;	// index1: word of del, index2: word of sub/trans
-
-			if(originalWords.length == RWords.length){
-				// 1.1 must be intra-word deletion		
-				j = 0; 
-				while(j<RWords.length && originalWords[i].length() == RWords.length()){
-					if(!originalWords[j].equals(RWords[j]) ){
-						index2 = j;
-					}
-					j++;
-				}
-				assert(j!=RWords.length);	// must exist at least one word with different length
-				index1 = j;
-				
-				j++; // start from the next word of the different word
-				while(j<RWords.length && index2 == -1){
-					assert(originalWords[j].length() == RWords[j].length() ): "only exist one word with different length and should be found already";
-					if(!originalWords[j].equals(RWords[j]) ){
-						index2 = j;
-						break;
-					}	
-					j++;
-				}
-
-				if(index2 != -1){
-					// 1.1.1 sub/trans happens in a different word
-					assert(index1 != index2);
-					errors[0] = detectDistanceOne(originalWords[index1], RWords[inedex2]);
-					assert(errors[0].errorType == 0);
-					errors[1] = detectDistanceOne(originalWords[index2], RWords[index2]);
-					assert(errors[1].errorType == 2 || errors[1].errorType == 3);
-					
-				}else{
-					// 1.1.2 sub/trans happens in the same word
-					errors[0] = detectDistanceOne(originalWords[j], RWords[j]);
-				}
-			}else{	
-				// 1.2 must be inter-word deltetion (merge)
-				j = 0;
-				while(j<RWords.length && )
-
-			}
-
-			// 2. detect 
-
-		}else if(lenOriginal == lenR - 1){	// 1 insertion + 1 sub/trans
-			
-		}else{
-			assert(lenOriginal == lenR): "original and wrong doesn't have edit distance 2";
-
-		}
-		return errors;
-	}
-	 */
 }
 class Error {
 	int errorType;		// 0:del 1:ins 2:sub 3:trans
