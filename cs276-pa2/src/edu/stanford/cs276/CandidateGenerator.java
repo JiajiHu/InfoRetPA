@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.lang.Object;
 
 import edu.stanford.cs276.util.Dictionary;
 import edu.stanford.cs276.util.Pair;
@@ -168,7 +169,7 @@ public class CandidateGenerator implements Serializable {
   //decide if there are invalid words in a query
   public boolean isValid(String query, Dictionary dict){
     String[] chars = query.split("\\s+");
-    if (!query.trim().equals(query))
+    if (!join(chars," ").equals(query))
       return false;
     for (int i=0; i<chars.length; i++){
       if (dict.count(chars[i])==0){
@@ -188,5 +189,20 @@ public class CandidateGenerator implements Serializable {
     }
     return ret;
   }
+  
+  public static String join(String[] list, String delim) {
+
+    StringBuilder sb = new StringBuilder();
+
+    String loopDelim = "";
+
+    for(String s : list) {
+        sb.append(loopDelim);
+        sb.append(s);            
+        loopDelim = delim;
+    }
+
+    return sb.toString();
+}
   
 }
