@@ -1,0 +1,47 @@
+\documentclass[10pt]{article}
+\usepackage{fullpage,enumerate,amsmath,amssymb,graphicx,setspace,epstopdf,float}
+
+\begin{document}
+\title{CS 276 Programming Assignment 2 Project Report}
+\author{Jiaji Hu, Xuening Liu}
+\date{}
+\maketitle
+
+\section{System Design}
+\subsection{Code Structure}
+The classes used in this programming assignment are as follows:
+
+{\it Index} and {\it Query} are used to handle indexing and querying, respectively.
+
+{\it BaseIndex} is the interface, and {\it BasicIndex}, {\it VBIndex} and {\it GammaIndex} do the encoding and decoding for writing to (reading from) output files.
+
+{\it pairComparator} and {\it postingListComparator} are used to help sort the posting lists.
+
+\subsection{Model Building}
+
+\subsection{Error Correction}
+
+\section{Methods}
+\subsection{Smoothing for Edit Probabilities}
+\subsection{Smoothing for Language Model}
+\subsubsection{Original method}
+\subsubsection{Extra: Back-off method}
+\cite{katz1987estimation}
+\subsubsection{Extra: Bucketing lambda}
+\cite{chen1996empirical}
+\section{Candidate Generation}
+
+\section{Parameter Tuning}
+\begin{table}[ht]
+\begin{tabular}{| c | c | c | c | c |}
+\hline
+Algorithm & index time(s) & index size (MB) & index size - including dicts (MB) & average retrieval time (s)\\\hline
+Basic & 67 & 58 & 72 & 1\\\hline
+VB & 149 & 18 & 33 & 1\\\hline
+Gamma & 178 & 13 & 29 & 1\\\hline
+\end{tabular}
+\end{table}
+
+\bibliographystyle{plain}
+\bibliography{references}
+\end{document}
