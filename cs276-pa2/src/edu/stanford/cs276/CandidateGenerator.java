@@ -11,7 +11,6 @@ import edu.stanford.cs276.util.Pair;
 
 public class CandidateGenerator implements Serializable {
 
-
 	private static CandidateGenerator cg_;
 	
 	// Don't use the constructor since this is a Singleton instance
@@ -37,21 +36,24 @@ public class CandidateGenerator implements Serializable {
 	    ' ',','};
 	    
 	// Generate all candidates for the target query
-	public HashMap<String,Integer> getCandidates(String query, Dictionary dict) throws Exception {
-	  HashMap<String,Integer> candidates = new HashMap<String, Integer>();	
+	public HashMap<String,Pair<String,Integer>> getCandidates(String query, Dictionary dict) throws Exception {
+    boolean genAll = true;
+	  HashMap<String,Pair<String,Integer>> candidates = new HashMap<String, Pair<String,Integer>>();	
 		boolean flag = false;
-	  candidates.put(query, 0);
+	  candidates.put(query, new Pair<String,Integer>(null,0));
 	  for(String possible: editDistanceOne(query, dict, false)){
 	    if (isValid(possible,dict) && !candidates.containsKey(possible)){
-	      candidates.put(possible, 1);
+	      candidates.put(possible, new Pair<String,Integer>(null,1));
 	      flag = true;
 	    }
 	  }
-	  if (!flag){
+	  if (!flag || genAll){
+//	    for(String possible: editDistanceOne(query, dict, true && !genAll))
 	    for(String possible: editDistanceOne(query, dict, true))
-	      for(String two: editDistanceOne(possible, dict, false))
-	        if (isValid(two,dict) && !candidates.containsKey(two))
-	          candidates.put(two, 2);
+	      if (numInvalid(possible,dict) < 2)
+  	      for(String two: editDistanceOne(possible, dict, false))
+  	        if (isValid(two,dict) && !candidates.containsKey(two))
+  	          candidates.put(two, new Pair<String,Integer>(possible,2));
 	  }
 	  return candidates;
 	}
@@ -106,6 +108,17 @@ public class CandidateGenerator implements Serializable {
 	  }
 	  return true;
 	}
+	// count number of invalid words in query
+	public int numInvalid(String query, Dictionary dict){
+    String[] chars = query.trim().split("\\s+");
+    int ret = 0;
+    for (int i=0; i<chars.length; i++){
+      if (dict.count(chars[i])==0){
+        ret++;
+      }
+    }
+    return ret;
+  }
 	
   //return strings of edit distance one, including splits, excluding merges
   public Set<String> editDistanceOneWords(String qword, Dictionary dict, boolean tolerate){

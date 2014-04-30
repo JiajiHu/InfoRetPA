@@ -98,7 +98,7 @@ public class RunCorrector {
 			
 			double score;
       
-      HashMap<String,Integer> candidates = candidateGen.getCandidates(query,languageModel.unaryFreq);
+      HashMap<String,Pair<String,Integer>> candidates = candidateGen.getCandidates(query,languageModel.unaryFreq);
 		  totalCand = totalCand + candidates.size();
 			for(String current: candidates.keySet()){
 			  score = languageModel.getLMScore(current, lambda);
@@ -139,9 +139,9 @@ public class RunCorrector {
             			else
               				w_changed_wrong++;
          		}
-					System.out.println("\nOriginal:  "+query);
-		      System.out.println("Corrected: "+correctedQuery);
-					System.out.println("Gold:      "+goldQuery);
+//					System.out.println("\nOriginal:  "+query);
+//		      System.out.println("Corrected: "+correctedQuery);
+//					System.out.println("Gold:      "+goldQuery);
 				}
 				totalCount++;				
 			}
@@ -163,6 +163,6 @@ public class RunCorrector {
 
 		long endTime   = System.currentTimeMillis();
 		long totalTime = endTime - startTime;
-		// System.out.println("RUNNING TIME: "+totalTime/1000+" seconds ");
+		 System.out.println("RUNNING TIME: "+totalTime/1000+" seconds ");
 	}
 }

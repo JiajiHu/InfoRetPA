@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 
+import edu.stanford.cs276.util.Pair;
+
 public class EmpiricalCostModel implements EditCostModel{
 	int numErrorType;
 	List<Map<Character, Map<Character, Integer> >> count;	// count of error frequency, list[0]:del, list[1]:ins, 
@@ -111,11 +113,12 @@ public class EmpiricalCostModel implements EditCostModel{
 	}
 
 	// You need to update this to calculate the proper empirical cost
-	@Override
-	public double editProbability(String original, String R, int distance) {
+	public double editProbability(String original, String R, Pair<String, Integer> pair) {
 		/*
 		 * Your code here
 		 */
+	  int distance = pair.getSecond();
+	  String prev = pair.getFirst();
 		// System.out.println("run editProbability");
 		if(distance == 0){
 			// System.out.println("dis == 0");
