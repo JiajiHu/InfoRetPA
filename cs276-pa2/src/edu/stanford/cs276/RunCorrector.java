@@ -139,9 +139,9 @@ public class RunCorrector {
             			else
               				w_changed_wrong++;
          		}
-//					System.out.println("\nOriginal:  "+query);
-//		      System.out.println("Corrected: "+correctedQuery);
-//					System.out.println("Gold:      "+goldQuery);
+					System.out.println("\nOriginal:  "+query);
+		      System.out.println("Corrected: "+correctedQuery);
+					System.out.println("Gold:      "+goldQuery);
 				}
 				totalCount++;				
 			}

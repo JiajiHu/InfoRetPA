@@ -33,7 +33,7 @@ public class CandidateGenerator implements Serializable {
 		public static final Character[] alphabet = {
 	    'a','b','c','d','e','f','g','h','i','j','k','l','m','n',
 	    'o','p','q','r','s','t','u','v','w','x','y','z',
-	    ' ',','};
+	    ' ','\''};
 	    
 	// Generate all candidates for the target query
 	public HashMap<String,Pair<String,Integer>> getCandidates(String query, Dictionary dict) throws Exception {
@@ -60,7 +60,9 @@ public class CandidateGenerator implements Serializable {
 	
 	public Set<String> editDistanceOne(String query, Dictionary dict, boolean tolerate){
 	  Set<String> possibles = new HashSet<String>();
-	  String[] qwords = query.trim().split("\\s+");
+	  if (!query.trim().equals(query))
+	      return possibles;
+	  String[] qwords = query.split("\\s+");
     String front = "";
     for (int i=0;i<qwords.length; i++){
       String back = "";
@@ -98,27 +100,6 @@ public class CandidateGenerator implements Serializable {
 	  return possibles;
 	}
 	
-	//decide if there are invalid words in a query
-	public boolean isValid(String query, Dictionary dict){
-	  String[] chars = query.trim().split("\\s+");
-	  for (int i=0; i<chars.length; i++){
-	    if (dict.count(chars[i])==0){
-        return false;
-	    }
-	  }
-	  return true;
-	}
-	// count number of invalid words in query
-	public int numInvalid(String query, Dictionary dict){
-    String[] chars = query.trim().split("\\s+");
-    int ret = 0;
-    for (int i=0; i<chars.length; i++){
-      if (dict.count(chars[i])==0){
-        ret++;
-      }
-    }
-    return ret;
-  }
 	
   //return strings of edit distance one, including splits, excluding merges
   public Set<String> editDistanceOneWords(String qword, Dictionary dict, boolean tolerate){
@@ -183,4 +164,27 @@ public class CandidateGenerator implements Serializable {
     }
 	  return possibles;
 	}
+  
+  //decide if there are invalid words in a query
+  public boolean isValid(String query, Dictionary dict){
+    String[] chars = query.split("\\s+");
+    for (int i=0; i<chars.length; i++){
+      if (dict.count(chars[i])==0){
+        return false;
+      }
+    }
+    return true;
+  }
+  // count number of invalid words in query
+  public int numInvalid(String query, Dictionary dict){
+    String[] chars = query.split("\\s+");
+    int ret = 0;
+    for (int i=0; i<chars.length; i++){
+      if (dict.count(chars[i])==0){
+        ret++;
+      }
+    }
+    return ret;
+  }
+  
 }
