@@ -88,7 +88,7 @@ public class CandidateGenerator implements Serializable {
       
       Set<String> words = editDistanceOneWords(qwords[i],dict,tolerate);
       for(String word: words){
-        possibles.add((front + word + back).trim());
+        possibles.add(front + word + back);
       }
       if (!tolerate && dict.count(qwords[i])==0)
         break;
@@ -136,7 +136,7 @@ public class CandidateGenerator implements Serializable {
 	    if (split.getFirst().isEmpty() || split.getSecond().isEmpty())
 	      continue;
 	    if (tolerate || (dict.count(split.getFirst())!=0 && dict.count(split.getFirst())!=0))
-	      possibles.add((split.getFirst()+" "+split.getSecond()).trim());
+	      possibles.add((split.getFirst()+" "+split.getSecond()));
 	  }
 	  // deletes
     for (Pair<String,String> split:splits){
@@ -146,9 +146,6 @@ public class CandidateGenerator implements Serializable {
           continue;
         // never delete a number
         if (rules && Character.isDigit(split.getSecond().charAt(0)))
-          continue;
-        // never take out a trailing s
-        if (rules && split.getSecond().length()==1 && split.getSecond().charAt(0)=='s')
           continue;
         if (tolerate || (dict.count(split.getFirst()+split.getSecond().substring(1))!=0))
           possibles.add(split.getFirst()+split.getSecond().substring(1));
