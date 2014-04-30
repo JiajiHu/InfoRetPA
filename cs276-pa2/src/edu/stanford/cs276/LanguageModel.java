@@ -37,16 +37,24 @@ public class LanguageModel implements Serializable {
     return (binaryFreq.count(words)+0.0)/unaryFreq.count(words.getFirst());
   }
 	
-	public double interpolationProb(Pair<String,String> words, double lambda){
-	  return lambda*findUnaryProb(words.getSecond()) + (1.0-lambda)*(findBinaryProb(words));
+	public double interpolationProb(Pair<String,String> words, double lambda, int mode){
+	  if (mode == 0)
+	    return lambda*findUnaryProb(words.getSecond()) + (1.0-lambda)*(findBinaryProb(words));
+	  else if (mode == 1){
+	    if (binaryFreq.count(words) < 1)
+	      return findUnaryProb(words.getSecond());
+	    else
+	      return lambda*findBinaryProb(words);
+	  }
+	  return 0;
 	}
 	
-	public double getLMScore(String current, double lambda){
+	public double getLMScore(String current, double lambda, int smooth_mode){
 	  double score;
 	  String[] q_words = current.trim().split("\\s+");
       score = Math.log(findUnaryProb(q_words[0]));
       for (int i=1; i<q_words.length;i++){
-        score = score + Math.log(interpolationProb(new Pair<String,String> (q_words[i-1],q_words[i]), lambda));
+        score = score + Math.log(interpolationProb(new Pair<String,String> (q_words[i-1],q_words[i]), lambda, smooth_mode));
       }
 	  return score;
 	}

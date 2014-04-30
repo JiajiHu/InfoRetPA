@@ -95,13 +95,13 @@ public class RunCorrector {
 			
       String correctedQuery = query;
 			double highscore = Double.NEGATIVE_INFINITY;
-			
+			int smooth_mode = 0;
 			double score;
       
       HashMap<String,Pair<String,Integer>> candidates = candidateGen.getCandidates(query,languageModel.unaryFreq);
 		  totalCand = totalCand + candidates.size();
 			for(String current: candidates.keySet()){
-			  score = languageModel.getLMScore(current, lambda);
+			  score = languageModel.getLMScore(current, lambda, smooth_mode);
 			  score = mu * score + Math.log(nsm.ecm_.editProbability(query, current, candidates.get(current)));
 		    if (score > highscore){
 		      highscore = score;

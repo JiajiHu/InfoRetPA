@@ -81,8 +81,8 @@ public class CandidateGenerator implements Serializable {
       }
       //try merging words`
       if (i+1<qwords.length){
-        if(start == 0 && (tolerate || dict.count(qwords[i]+qwords[i+1])>0)){
-          possibles.add(new Pair<String,Integer>(front + qwords[i] + qwords[i+1] + back,0));
+        if(start <= 5 && (tolerate || dict.count(qwords[i]+qwords[i+1])>0)){
+          possibles.add(new Pair<String,Integer>(front + qwords[i] + qwords[i+1] + back,5));
         }
         back = " " + qwords[i+1] + back;        
       }
@@ -112,16 +112,16 @@ public class CandidateGenerator implements Serializable {
 	  for (int i=0; i<=qword.length(); i++){
 	    splits.add( new Pair<String,String>(qword.substring(0,i),qword.substring(i)));
 	  }
-	  if (start <= 2){
+	  if (start <= 1){
 	    for (Pair<String,String> split:splits){
   	    if (split.getFirst().isEmpty() || split.getSecond().isEmpty())
   	      continue;
   	    if (tolerate || (dict.count(split.getFirst())!=0 && dict.count(split.getFirst())!=0))
-  	      possibles.add(new Pair<String,Integer>((split.getFirst()+" "+split.getSecond()),2));
+  	      possibles.add(new Pair<String,Integer>((split.getFirst()+" "+split.getSecond()),1));
   	  }
   	}
 	  // deletes
-	  if (start <= 5){
+	  if (start <= 4){
       for (Pair<String,String> split:splits){
         if (split.getSecond().length()>0){
           // never delete a single letter word
@@ -131,22 +131,22 @@ public class CandidateGenerator implements Serializable {
           if (rules && Character.isDigit(split.getSecond().charAt(0)))
             continue;
           if (tolerate || (dict.count(split.getFirst()+split.getSecond().substring(1))!=0))
-            possibles.add(new Pair<String,Integer>(split.getFirst()+split.getSecond().substring(1),5));
+            possibles.add(new Pair<String,Integer>(split.getFirst()+split.getSecond().substring(1),4));
         }
       }
 	  }
     // transposes
-    if (start <= 3){
+    if (start <= 2){
   	  for (Pair<String,String> split:splits){
   	    if (split.getSecond().length()>1){
   	      String out = split.getFirst()+split.getSecond().charAt(1)+split.getSecond().charAt(0)+split.getSecond().substring(2);
           if (tolerate || dict.count(out) != 0)
-            possibles.add(new Pair<String,Integer>(out,3));
+            possibles.add(new Pair<String,Integer>(out,2));
   	    }
   	  }
     }
 	  // replaces
-    if (start <= 1){      
+    if (start <= 0){      
   	  for (Pair<String,String> split:splits){
         if (split.getSecond().length()>0){
           for (Character c : using){
@@ -157,20 +157,20 @@ public class CandidateGenerator implements Serializable {
             if (rules && Character.isDigit(split.getSecond().charAt(0)))
               continue;
             if (tolerate ||dict.count(split.getFirst()+ c +split.getSecond().substring(1))!=0)
-              possibles.add(new Pair<String,Integer>(split.getFirst()+ c +split.getSecond().substring(1),1));
+              possibles.add(new Pair<String,Integer>(split.getFirst()+ c +split.getSecond().substring(1),0));
           }
         }
       }
     }
 	  // inserts
-    if (start <= 4){
+    if (start <= 3){
   	  for (Pair<String,String> split:splits){
         for (Character c: using){
           // inserting ' ' is same as split
           if (c == ' ')
             continue;
           if (tolerate || dict.count(split.getFirst()+c+split.getSecond()) != 0)
-            possibles.add(new Pair<String,Integer>(split.getFirst()+c+split.getSecond(),4));
+            possibles.add(new Pair<String,Integer>(split.getFirst()+c+split.getSecond(),3));
         }
       }
     }
