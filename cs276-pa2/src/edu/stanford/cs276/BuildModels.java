@@ -1,9 +1,11 @@
 package edu.stanford.cs276;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class BuildModels {
 
-	public static double MU = .05;
 	public static LanguageModel languageModel;
 	public static NoisyChannelModel noisyChannelModel;
 
@@ -43,6 +45,9 @@ public class BuildModels {
 			 * it will run code for your extra credit and it will run you basic 
 			 * implementations without the "extra" parameter.
 			 */	
+		  List<String> blacklist = new ArrayList<String>();;
+		  blacklist.add("standford");
+		  languageModel.unaryFreq.purgeDict(blacklist);
 		}
 	}
 }

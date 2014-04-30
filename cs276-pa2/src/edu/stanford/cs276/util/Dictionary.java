@@ -3,6 +3,7 @@ package edu.stanford.cs276.util;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 public class Dictionary implements Serializable {
@@ -38,13 +39,10 @@ public class Dictionary implements Serializable {
 		}
 	}
 	
-//	public void purgeDict() {
-//	  Iterator<String> iter = map.keySet().iterator();
-//	  while (iter.hasNext()) {
-//	      String word = iter.next();
-//	      if(map.get(word) < 2)
-//	          iter.remove();
-//	  }
-//	}
+	public void purgeDict(List<String> words) {
+	  for (String word: words){
+	    map.remove(word);
+	  }
+	}
 	
 }

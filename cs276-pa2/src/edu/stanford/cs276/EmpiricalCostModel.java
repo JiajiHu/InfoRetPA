@@ -25,7 +25,7 @@ public class EmpiricalCostModel implements EditCostModel{
 	public EmpiricalCostModel(String editsFile) throws IOException {
 		// initialize
 		System.out.println("initialize EmpiricalCostModel");
-		numErrorType = 4;
+		numErrorType = 5;
 		count = new ArrayList<Map<String, Integer>>();
 		pairCount = new HashMap<String, Integer>();
 		singleCount = new HashMap<String, Integer>();
@@ -130,7 +130,7 @@ public class EmpiricalCostModel implements EditCostModel{
 			return prob;
 		}else{
 			assert(distance <= 2): "can't process distance more than 2";
-			return 1e-4;
+			return 1e-6;
 		}
 	}
 	private double calculateProb (Error error){
@@ -145,13 +145,14 @@ public class EmpiricalCostModel implements EditCostModel{
 				num += map.get(errorPair);
 			if(pairCount.containsKey(errorPair))
 				den += pairCount.get(errorPair);
-		}else{	// ins or sub
-			assert(errorType == 1 || errorType == 2): "wrong errorType";
+		}else if (errorType == 1 || errorType == 2){	// ins or sub
 			if(map.containsKey(errorPair))
 				num += map.get(errorPair);
 			if(singleCount.containsKey(errorPair.substring(0,1) ))
 				den += singleCount.get(errorPair.substring(0,1) );
 		}
+		else
+		  return 1e-6;
 		return num/den;
 
 	}
@@ -188,11 +189,10 @@ public class EmpiricalCostModel implements EditCostModel{
 				pre = R.charAt(i-1);
 				post =R.charAt(i);
 			}
-		}else{	// sub OR trans
-			assert(lenOriginal == lenR): "original and wrong doesn't have edit distance 1";
+		}else if (lenOriginal == lenR){	// sub OR trans
 			i=0;
-			System.out.println ("O: "+original + "W: "+R);
-			System.out.println ("O len: "+lenOriginal + "W len: "+lenR);
+//			System.out.println ("O: "+original + "W: "+R);
+//      System.out.println ("O len: "+lenOriginal + "W len: "+lenR);			  
 			while(i<lenOriginal-1 && original.charAt(i) == R.charAt(i) )
 				i++;
 			if(i != lenOriginal-1 && original.charAt(i) == R.charAt(i+1) && original.charAt(i+1) == R.charAt(i)){
@@ -204,6 +204,9 @@ public class EmpiricalCostModel implements EditCostModel{
 				pre = original.charAt(i);
 				post = R.charAt(i);
 			}
+		}
+		else{
+		  return new Error();
 		}
 		// System.out.println("errorType: "+errorType + " pre: "+pre +" post: "+post );
 		return new Error(errorType, ""+pre+post);
@@ -239,10 +242,10 @@ public class EmpiricalCostModel implements EditCostModel{
 	}
 }
 class Error {
-	int errorType;		// 0:del 1:ins 2:sub 3:trans
+	int errorType;		// 0:del 1:ins 2:sub 3:trans 4:ERROR
 	String errorPair;
 	public Error(){
-		errorType = -1;
+		errorType = 4;
 		errorPair = null;
 	}
 	public Error(int et, String str){
