@@ -56,7 +56,7 @@ public class EmpiricalCostModel implements EditCostModel{
 			int lenClean = clean.length();
 			String c;
 			
-			for(int i=0; i<lenClean; i++){
+			for(int i=0; i<lenClean-1; i++){
 				c = clean.substring(i,i+1);
 				if(singleCount.containsKey(c)){
 					singleCount.put(c, singleCount.get(c)+1);
@@ -67,7 +67,7 @@ public class EmpiricalCostModel implements EditCostModel{
 			
 			for(int i=0; i<lenClean; i++){
 				if(i == 0){
-					c = "*"+clean.charAt(i);
+					c = " "+clean.charAt(i);
 				}else{
 					c = clean.substring(i-1,i+1);
 				}
@@ -171,7 +171,7 @@ public class EmpiricalCostModel implements EditCostModel{
 			while(i<lenR && original.charAt(i) == R.charAt(i) )
 				i++;
 			if(i == 0){
-				pre = '*'; // use '*' to represent beginning of a sentence
+				pre = ' '; // use '*' to represent beginning of a sentence
 				post = original.charAt(0);
 			}else{
 				pre = original.charAt(i-1);
@@ -183,7 +183,7 @@ public class EmpiricalCostModel implements EditCostModel{
 			while(i<lenOriginal && original.charAt(i) == R.charAt(i) )
 				i++;
 			if(i == 0){
-				pre = '*'; // use '*' to represent head
+				pre = ' '; // use '*' to represent head
 				post = R.charAt(0);	// char been inserted
 			}else{
 				pre = R.charAt(i-1);
