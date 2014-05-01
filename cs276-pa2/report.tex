@@ -20,9 +20,8 @@ To building the language model, we go through the training corpus, building up o
 
 To conform with memory requirements and still save the information for the extra credit, we implemented a \texttt{Triple} class and a \texttt{TriDictionary} class to store entries.
 \subsubsection{Noisy Channel Model}
-To build the noisy channel model, we go through the training edit file, which is used to train the empirical cost model.
+To build the noisy channel model, we go through the training edit file, collect 3 kinds of statistics: count of single character, count of pair characters and count of error to train the model. For count of error, we defined a new class \texttt{Error} to store the error type, and error string.
 
-***************************** STUFF HERE **********************************
 \subsection{Error Correction}
 At query time, the input query is fed into the candidate generator to generate candidates with edit distance lesser or equal to 2. The candidate generation process is discussed in detail in Section 3.
 
@@ -30,14 +29,13 @@ After this, we want to calculate $P(Q|R)$, where R is the actual input, and Q is
 
 For the language model, $P(Q)=P(w_1,\dots,w_n)=P(w_1)P(w_2|w_1)\dots P(w_n|w_{n-1})$. We use maximum likelihood estimation for these unigram and bigram probabilities, with smoothing for the bigram probabilities. Smoothing methods are discussed in depth in the next section.
 
-For the noisy channel model, if we are using uniform edit probabilities, then we simply assume that any edit of edit distance one occurs with the same small probability. If we are using the empirical cost model, 
+For the noisy channel model, if we are using uniform edit probabilities, then we simply assume that any edit of edit distance one occurs with the same small probability. If we are using the empirical cost model, we first detect error type, which is used to find corresponding satistics collected during training to calculate error probabilities.
 
-***************************** STUFF HERE **********************************
 \section{Methods}
 \subsection{Smoothing for Edit Probabilities}
 To assign probabilities for edits that are not found in the training edit file, we first used simple add-one smoothing. To try to improve on that, we switched to add-delta smoothing, and tested some values of delta.
 
-***************************** STUFF HERE **********************************
+***** STUFF HERE ************
 \subsection{Smoothing for Language Model}
 \subsubsection{Original method (Jelinek-Mercer)}
 Smoothing is done to try to account for the data sparsity problem. If a query had a bigram that was not seen during training, we don't want its probability to be zero.
@@ -71,7 +69,9 @@ P_{CONT}(w) = \frac{|\{w_{i-1:c(w_{i-1},w)>0\}|}}{\sum_{w'}|\{w':c(w'_{i-1},w')>
 
 After we implemented Kneser-Ney smoothing, we used the new smoothing method for our corrector. After tuning parameters such as $\mu$, we were able to get 90.7\% accuracy using just uniform edit costs, a slight improvement on basic interpolation smoothing. 
 \section{Candidate Generation}
-Candidate generation is very important. On one hand, if the right correction was not even generated, the output query cannot be correct, so we want to cover as much space as possible. On the other, generating and scoring large amounts of candidates puts a huge strain on runtime and memory, so there is an obvious trade-off here.
+To generate candidates of edit distance 1, we created a method \texttt{editDistanceOne()} based on Peter Norvig's approach. To generate distance 2 candidates, we run \texttt{editDistanceOne()} on the distance 1 results. After computing candidate words, we compare them to the dictionary to filter out invalid ones so that we don't have to score them.
+ 
+There is an obvious tradeoff regarding candidate generation. On one hand, if the right answer was not even generated, the output query cannot be correct, so we want to cover as much space as possible. On the other hand, generating and scoring large amounts of candidates uses excessive runtime and memory.
 
 With this tradeoff in mind, we looked at three strategies for generating distance 2 candidates, in the order of increasing number of candidates generated: (note that we define an output of the generator to be a ``raw" candidate, and a raw candidate to be ``valid'' if all its words appear in the unigram dictionary.)
 
@@ -81,21 +81,22 @@ With this tradeoff in mind, we looked at three strategies for generating distanc
 
 3. Generate {\it all} distance 2 candidates.
 
-
-
-To generate candidates of edit distance 1, we use Peter Norvig's approach. After computing candidate words, we compare them to the dictionary to filter out invalid ones so that we don't have to score them.
-
-
-\section{Parameter Tuning}
 \begin{table}[ht]
 \begin{tabular}{| c | c | c | c | c |}
 \hline
-Algorithm & index time(s) & index size (MB) & index size - including dicts (MB) & average retrieval time (s)\\\hline
-Basic & 67 & 58 & 72 & 1\\\hline
-VB & 149 & 18 & 33 & 1\\\hline
-Gamma & 178 & 13 & 29 & 1\\\hline
+Strat. & Time(s) & Valid cand. & Raw cand. & Accuracy\\\hline
+1 & 10 & 50,000 & few & 86.1\%\\\hline
+2 & 50 & 5,600,000 & many & 88.5\%\\\hline
+3 & 150 & 5,800,000 & {\it very} many & 90.0\%\\\hline
 \end{tabular}
 \end{table}
+
+As shown above, the tradeoffs are quite obvious. By optimizing our code (including a novel optimization where we avoid repeat generation of any raw candidate by ordering our generation steps - its complicated), we were able to cut down on runtimes, so that we could get away with generating vast amounts of raw candidates. By filtering raw candidates with our dictionary, we make sure not to score useless candidates. If runtime becomes an issue, we can always fall back on a faster, but slightly less accurate strategy.
+
+\section{Parameter Tuning}
+In this section we focus on two parameters that give obvious changes in performance when tuned: for empirical edit costs, $\mu$, the weight of the language model in the final candidate score, and for uniform costs, the edit probability.
+
+Also, we note that a query can only produce 5 types of outcomes, based on whether the input was correct in the first place, whether the spell corrector modified the query, and whether the output was correct. These statistics are important in understanding what kind of mistakes the corrector is making.
 
 \bibliographystyle{plain}
 \bibliography{references}
