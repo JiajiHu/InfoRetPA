@@ -58,7 +58,7 @@ Looking at the Good-Turing numbers from \cite{church1991comparison}, we find tha
 
 Kneser-Ney smoothing extends absolute discounting interpolation with the idea that the lower-order model is only significant when the high-order model gives a small value (the count is small or zero). Therefore, the it should be optimized to give low probabilities for words that usually appear as the second word in a combination. (For example, the lower-order model should give a low score for the word ``Francisco".)
 
-To do this, we compute the lower order model with the nominator being the number of unique bigram continuations made by the word, instead of total bigrams with that word. The equations are as follows:
+To do this, we compute the lower order model with the numerator being the number of unique bigram continuations made by the word, instead of total bigrams with that word. The equations are as follows:
 \begin{equation*}
 P_{KN}(w_i|w_{i-1})=\frac{max(c(w_{i-1},w_i)-d,0)}{c(w_{i-1})}+\lambda(w_{i-1})P_{CONT}(w_i)
 \end{equation*}
