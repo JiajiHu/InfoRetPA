@@ -15,13 +15,14 @@ import java.util.TreeMap;
 import edu.stanford.cs276.util.BinDictionary;
 import edu.stanford.cs276.util.Dictionary;
 import edu.stanford.cs276.util.Pair;
+import edu.stanford.cs276.util.TriDictionary;
 
 
 public class LanguageModel implements Serializable {
 
 	private static LanguageModel lm_;
 
-	public Dictionary unaryFreq = new Dictionary();
+	public TriDictionary unaryVals = new TriDictionary();
 	public BinDictionary binaryFreq = new BinDictionary();
   
 	// Do not call constructor directly since this is a Singleton
@@ -30,21 +31,31 @@ public class LanguageModel implements Serializable {
 	}
 
   public double findUnaryProb(String word){
-	  return (unaryFreq.count(word)+0.0)/unaryFreq.termCount();
+	  return (unaryVals.countFirst(word)+0.0)/unaryVals.termCount();
 	}
 	
-	public double findBinaryProb(Pair<String,String> words){
-    return (binaryFreq.count(words)+0.0)/unaryFreq.count(words.getFirst());
+	public double findBinaryProb(Pair<String,String> words, double discount){
+	  return Math.max(binaryFreq.count(words)-discount,0.0)/unaryVals.countFirst(words.getFirst());
   }
 	
+	public double findKNProb(Pair<String,String> words, double discount){
+	  return discount/unaryVals.countFirst(words.getFirst())*unaryVals.countThird(words.getFirst())*unaryVals.countSecond(words.getSecond())/unaryVals.behindTermCount();
+	}
+	
 	public double interpolationProb(Pair<String,String> words, double lambda, int mode){
+	  // mode 0: original, 1: backoff, 2: Kneser-Ney
 	  if (mode == 0)
-	    return lambda*findUnaryProb(words.getSecond()) + (1.0-lambda)*(findBinaryProb(words));
+	    return lambda*findUnaryProb(words.getSecond()) + (1.0-lambda)*(findBinaryProb(words,0.0));
 	  else if (mode == 1){
 	    if (binaryFreq.count(words) < 1)
 	      return findUnaryProb(words.getSecond());
 	    else
-	      return lambda*findBinaryProb(words);
+	      return lambda*findBinaryProb(words,0.0);
+	  }
+	  else if (mode == 2){
+	    double d = 0.05;
+	    return findKNProb(words,d) + findBinaryProb(words,d);  
+      
 	  }
 	  return 0;
 	}
@@ -74,10 +85,13 @@ public class LanguageModel implements Serializable {
 			while ((line = input.readLine()) != null) {
 			  String[] tokens = line.trim().split("\\s+");
 			  for (int i = 0; i < tokens.length; i++) {
-			    unaryFreq.add(tokens[i]);
+			    unaryVals.addFirst(tokens[i]);
 			    if (i>0){
 			      Pair<String,String> seq = new Pair<String,String> (tokens[i-1],tokens[i]);
+			      unaryVals.addThird(tokens[i-1]);
 			      binaryFreq.add(seq);
+			      if (binaryFreq.count(seq) == 1)
+			        unaryVals.addSecond(tokens[i]);
 			    }
 			  }
 			}

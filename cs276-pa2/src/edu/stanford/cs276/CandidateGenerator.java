@@ -7,6 +7,7 @@ import java.util.Set;
 
 import edu.stanford.cs276.util.Dictionary;
 import edu.stanford.cs276.util.Pair;
+import edu.stanford.cs276.util.TriDictionary;
 
 public class CandidateGenerator implements Serializable {
 
@@ -35,7 +36,7 @@ public class CandidateGenerator implements Serializable {
 	    ' ','\''};
 	    
 	// Generate all candidates for the target query
-	public HashMap<String,Pair<String,Integer>> getCandidates(String query, Dictionary dict) throws Exception {
+	public HashMap<String,Pair<String,Integer>> getCandidates(String query, TriDictionary dict) throws Exception {
     boolean genAll = true;
 	  HashMap<String,Pair<String,Integer>> candidates = new HashMap<String, Pair<String,Integer>>();	
 		boolean flag = false;
@@ -57,7 +58,7 @@ public class CandidateGenerator implements Serializable {
 	  return candidates;
 	}
 	
-	public Set<Pair<String,Integer>> editDistanceOne(String query, Dictionary dict, boolean tolerate, int start){
+	public Set<Pair<String,Integer>> editDistanceOne(String query, TriDictionary dict, boolean tolerate, int start){
 	  Set<Pair<String,Integer>> possibles = new HashSet<Pair<String,Integer>>();
 	  if (!query.trim().equals(query))
 	      return possibles;
@@ -68,7 +69,7 @@ public class CandidateGenerator implements Serializable {
       //check front and back: if contains non-dictionary words, don't put in candidates (if not tolerate)
       boolean flag = true;
       for (int j=i+2;j<qwords.length;j++){
-        if (dict.count(qwords[j])==0){
+        if (dict.countFirst(qwords[j])==0){
           flag = false;
           if (!tolerate)
             break;
@@ -81,7 +82,7 @@ public class CandidateGenerator implements Serializable {
       }
       //try merging words`
       if (i+1<qwords.length){
-        if(start <= 5 && (tolerate || dict.count(qwords[i]+qwords[i+1])>0)){
+        if(start <= 5 && (tolerate || dict.countFirst(qwords[i]+qwords[i+1])>0)){
           possibles.add(new Pair<String,Integer>(front + qwords[i] + qwords[i+1] + back,5));
         }
         back = " " + qwords[i+1] + back;        
@@ -91,7 +92,7 @@ public class CandidateGenerator implements Serializable {
       for(Pair<String,Integer> word: words){
         possibles.add(new Pair<String,Integer>(front + word.getFirst() + back,word.getSecond()));
       }
-      if (!tolerate && dict.count(qwords[i])==0)
+      if (!tolerate && dict.countFirst(qwords[i])==0)
         break;
       front = front + qwords[i] + " ";
     }
@@ -101,7 +102,7 @@ public class CandidateGenerator implements Serializable {
 	
 	
   //return strings of edit distance one, including splits, excluding merges
-  public Set<Pair<String,Integer>> editDistanceOneWords(String qword, Dictionary dict, boolean tolerate, int start){
+  public Set<Pair<String,Integer>> editDistanceOneWords(String qword, TriDictionary dict, boolean tolerate, int start){
     // use rules or not: need rules to avoid stupid mistakes
     boolean rules = false;
     Character[] using = alphabet;
@@ -112,12 +113,12 @@ public class CandidateGenerator implements Serializable {
 	  for (int i=0; i<=qword.length(); i++){
 	    splits.add( new Pair<String,String>(qword.substring(0,i),qword.substring(i)));
 	  }
-	  if (start <= 1){
+	  if (start <= 2){
 	    for (Pair<String,String> split:splits){
   	    if (split.getFirst().isEmpty() || split.getSecond().isEmpty())
   	      continue;
-  	    if (tolerate || (dict.count(split.getFirst())!=0 && dict.count(split.getFirst())!=0))
-  	      possibles.add(new Pair<String,Integer>((split.getFirst()+" "+split.getSecond()),1));
+  	    if (tolerate || (dict.countFirst(split.getFirst())!=0 && dict.countFirst(split.getFirst())!=0))
+  	      possibles.add(new Pair<String,Integer>((split.getFirst()+" "+split.getSecond()),2));
   	  }
   	}
 	  // deletes
@@ -130,18 +131,18 @@ public class CandidateGenerator implements Serializable {
           // never delete a number
           if (rules && Character.isDigit(split.getSecond().charAt(0)))
             continue;
-          if (tolerate || (dict.count(split.getFirst()+split.getSecond().substring(1))!=0))
+          if (tolerate || (dict.countFirst(split.getFirst()+split.getSecond().substring(1))!=0))
             possibles.add(new Pair<String,Integer>(split.getFirst()+split.getSecond().substring(1),4));
         }
       }
 	  }
     // transposes
-    if (start <= 2){
+    if (start <= 1){
   	  for (Pair<String,String> split:splits){
   	    if (split.getSecond().length()>1){
   	      String out = split.getFirst()+split.getSecond().charAt(1)+split.getSecond().charAt(0)+split.getSecond().substring(2);
-          if (tolerate || dict.count(out) != 0)
-            possibles.add(new Pair<String,Integer>(out,2));
+          if (tolerate || dict.countFirst(out) != 0)
+            possibles.add(new Pair<String,Integer>(out,1));
   	    }
   	  }
     }
@@ -156,7 +157,7 @@ public class CandidateGenerator implements Serializable {
             //never replace a number
             if (rules && Character.isDigit(split.getSecond().charAt(0)))
               continue;
-            if (tolerate ||dict.count(split.getFirst()+ c +split.getSecond().substring(1))!=0)
+            if (tolerate ||dict.countFirst(split.getFirst()+ c +split.getSecond().substring(1))!=0)
               possibles.add(new Pair<String,Integer>(split.getFirst()+ c +split.getSecond().substring(1),0));
           }
         }
@@ -169,7 +170,7 @@ public class CandidateGenerator implements Serializable {
           // inserting ' ' is same as split
           if (c == ' ')
             continue;
-          if (tolerate || dict.count(split.getFirst()+c+split.getSecond()) != 0)
+          if (tolerate || dict.countFirst(split.getFirst()+c+split.getSecond()) != 0)
             possibles.add(new Pair<String,Integer>(split.getFirst()+c+split.getSecond(),3));
         }
       }
@@ -178,10 +179,10 @@ public class CandidateGenerator implements Serializable {
 	}
   
   //decide if there are invalid words in a query
-  public boolean isValid(String query, Dictionary dict){
+  public boolean isValid(String query, TriDictionary dict){
     String[] chars = query.split("\\s+");
     for (int i=0; i<chars.length; i++){
-      if (dict.count(chars[i])==0){
+      if (dict.countFirst(chars[i])==0){
         return false;
       }
     }
@@ -189,11 +190,11 @@ public class CandidateGenerator implements Serializable {
   }
   
   // count number of invalid words in query
-  public int numInvalid(String query, Dictionary dict){
+  public int numInvalid(String query, TriDictionary dict){
     String[] chars = query.split("\\s+");
     int ret = 0;
     for (int i=0; i<chars.length; i++){
-      if (dict.count(chars[i])==0){
+      if (dict.countFirst(chars[i])==0){
         ret++;
       }
     }

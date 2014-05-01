@@ -5,7 +5,7 @@ import edu.stanford.cs276.util.Pair;
 public class UniformCostModel implements EditCostModel {
 	
   static double CORRECT_PROB = 0.95;
-  static double EDIT_PROB = 0.03;
+  static double EDIT_PROB = 0.015;
 
   @Override
 	public double editProbability(String original, String R, Pair<String, Integer> pair) {

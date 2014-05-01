@@ -83,7 +83,7 @@ public class RunCorrector {
 	  int right_unchanged = 0;
 	  int right_changed_wrong = 0;
 			
-		double mu = 0.6;
+		double mu = 0.7;
 	  double lambda = 0.05;
 		/**************************************/
     
@@ -95,10 +95,10 @@ public class RunCorrector {
 			
       String correctedQuery = query;
 			double highscore = Double.NEGATIVE_INFINITY;
-			int smooth_mode = 0;
+			int smooth_mode = 2;
 			double score;
       
-      HashMap<String,Pair<String,Integer>> candidates = candidateGen.getCandidates(query,languageModel.unaryFreq);
+      HashMap<String,Pair<String,Integer>> candidates = candidateGen.getCandidates(query,languageModel.unaryVals);
 		  totalCand = totalCand + candidates.size();
 			for(String current: candidates.keySet()){
 			  score = languageModel.getLMScore(current, lambda, smooth_mode);
