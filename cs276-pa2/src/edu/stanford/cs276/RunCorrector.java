@@ -86,7 +86,8 @@ public class RunCorrector {
 	  int smooth_mode = 0;
     double mu = 0.7;
 	  if(uniformOrEmpirical.equals("uniform")){
-	    mu = 0.7;
+	    // actually mu = 0.7 works best, almost as good as empirical
+	    mu = 1.3;
 	  }else{
 	    mu = 1.3;
 	  }

@@ -19,7 +19,7 @@ To building the language model, we go through the training corpus, building up o
 
 To conform with memory requirements and still save the information for the extra credit, we implemented a \texttt{Triple} class and a \texttt{TriDictionary} class to store entries.
 \subsubsection{Noisy Channel Model}
-To build the noisy channel model, we go through the training edit file, collect 3 kinds of statistics: count of single character, count of pair characters and count of error to train the model. For count of error, we defined a new class \texttt{Error} to store the error type, and error string.
+To build the noisy channel model, we go through the training edit file, collect 3 kinds of statistics: count of single character, count of pair characters and count of errors to train the model. For count of error, we defined a new class \texttt{Error} to store the error type, and error string.
 
 \subsection{Error Correction}
 At query time, the input query is fed into the candidate generator to generate candidates with edit distance lesser or equal to 2. The candidate generation process is discussed in detail in Section 2.
@@ -28,7 +28,7 @@ After this, we want to calculate $P(Q|R)$, where R is the actual input, and Q is
 
 For the language model, $P(Q)=P(w_1,\dots,w_n)=P(w_1)P(w_2|w_1)\dots P(w_n|w_{n-1})$. We use maximum likelihood estimation for these unigram and bigram probabilities, with smoothing for the bigram probabilities. Smoothing methods are discussed in depth in Section 3.
 
-For the noisy channel model, if we are using uniform edit probabilities, then we simply assume that any edit of edit distance one occurs with the same small probability. If we are using the empirical cost model, we first detect error type, which is used to find corresponding satistics collected during training to calculate error probabilities.
+For the noisy channel model, if we are using uniform edit probabilities, then we simply assume that any edit of edit distance one occurs with the same small probability. If we are using the empirical cost model, we first detect the error type, which is used to find corresponding statistics collected during training to calculate error probabilities.
 \section{Candidate Generation}
 To generate candidates of edit distance 1, we created a method \texttt{editDistanceOne()} based on Peter Norvig's approach. To generate distance 2 candidates, we run \texttt{editDistanceOne()} on the distance 1 results. After computing candidate words, we compare them to the dictionary to filter out invalid ones so that we don't have to score them.
  
@@ -88,7 +88,7 @@ P_{KN}(w_i|w_{i-1})=\frac{max(c(w_{i-1},w_i)-d,0)}{c(w_{i-1})}+\lambda(w_{i-1})P
 P_{CONT}(w) = \frac{|\{w_{i-1:c(w_{i-1},w)>0\}|}}{\sum_{w'}|\{w':c(w'_{i-1},w')>0\}|}
 \end{equation*}
 
-After we implemented Kneser-Ney smoothing, we used the new smoothing method for our corrector. After tuning parameters such as $\mu$, we were able to get 90.7\% accuracy using just uniform edit costs, a slight improvement on basic interpolation smoothing. 
+After we implemented Kneser-Ney smoothing, we used the new smoothing method for our corrector. After tuning parameters such as $\mu$, we were able to get 90.6\% accuracy, a slight improvement on basic interpolation smoothing. 
 \section{Parameter Tuning}
 In this section we focus on two parameters that give obvious changes in performance when tuned: for empirical edit costs, $\mu$, the weight of the language model in the final candidate score, and for uniform costs, the edit probability.
 
@@ -105,7 +105,7 @@ Also, we note that a query can only produce 5 types of outcomes, based on whethe
 \begin{figure}[H]
 \includegraphics[width=0.9\linewidth]{editprob_err}
 \end{figure}
-As we study the above figure, the effect of edit probability on the spell corrector is clear.
+As we study the above figure, the effect of edit probability on the uniform cost spell corrector is clear. When the edit probability is small, we never make the mistake of modifying a correct input query. As the probability is set higher, these kind of mistakes happen more and more often. On the other hand, with small edit probability, we fail to modify a large amount of incorrect queries. As the probability is set higher, many of these queries get modified.
 
 \bibliographystyle{plain}
 \bibliography{references}
