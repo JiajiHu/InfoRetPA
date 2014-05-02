@@ -149,7 +149,7 @@ public class RunCorrector {
 //		System.out.println("\n***********************************************");
 //	    System.out.println("Correct "+ Integer.toString(yourCorrectCount));
 //	    System.out.println("Total "+ Integer.toString(totalCount));
-//	    System.out.println("Perce·ntage "+ Double.toString((yourCorrectCount+0.0)/totalCount));
+//	    System.out.println("Percentage "+ Double.toString((yourCorrectCount+0.0)/totalCount));
 //
 //	    System.out.println("Correct unchanged "+ Integer.toString(right_unchanged));
 //	    System.out.println("Wrong to right "+ Integer.toString(w_changed_right));

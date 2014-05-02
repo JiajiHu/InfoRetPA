@@ -80,10 +80,5 @@ public class TriDictionary implements Serializable {
       return 0;
     }
   }
-	public void purgeDict(List<String> words) {
-	  for (String word: words){
-	    map.remove(word);
-	  }
-	}
 	
 }

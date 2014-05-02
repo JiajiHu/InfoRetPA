@@ -33,13 +33,7 @@ public class BuildModels {
 		languageModel =  LanguageModel.create(trainingCorpus);
 		noisyChannelModel = NoisyChannelModel.create(editsFile);
 		if ("extra".equals(extra)) {
-		  // add a blacklist of popular misspellings -> should include more, but this will do for now
-		  List<String> blacklist = new ArrayList<String>();;
-      blacklist.add("standford");
-      blacklist.add("tressider");
-      blacklist.add("accomodate");
-      languageModel.unaryVals.purgeDict(blacklist);
-    }
+		}
 		// Save the models to disk
 		noisyChannelModel.save();
 		languageModel.save();
