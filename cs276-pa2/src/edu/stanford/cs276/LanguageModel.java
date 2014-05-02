@@ -53,7 +53,7 @@ public class LanguageModel implements Serializable {
 	      return lambda*findBinaryProb(words,0.0);
 	  }
 	  else if (mode == 2){
-	    double d = 0.05;
+	    double d = lambda;
 	    return findKNProb(words,d) + findBinaryProb(words,d);  
       
 	  }

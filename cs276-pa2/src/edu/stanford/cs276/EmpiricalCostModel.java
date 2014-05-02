@@ -13,13 +13,12 @@ import edu.stanford.cs276.util.Pair;
 
 public class EmpiricalCostModel implements EditCostModel{
 	int numErrorType;
-	List<Map<String, Integer>> count;	// count of error frequency, list[0]:del, list[1]:ins, list[2]:sub, list[3]:trans
-	//List<Map<Character, Integer>> totalCount; 		// total count of a char in mistake	
-	Map<String, Integer> pairCount;		// count of char pair count
-	Map<String, Integer> singleCount; 	// count of char count 
+	List<Map<String, Integer>> count;	// error frequency count -- list[0]:del, list[1]:ins, list[2]:sub, list[3]:trans
+	Map<String, Integer> pairCount;		// char pair count
+	Map<String, Integer> singleCount; // char count 
 	
 	static double CORRECT_PROB = 0.95;
-	//static double EDIT_PROB = 0.05;
+	static double ERROR_PROB = 1e-6;
 	int numChar;
 
 	public EmpiricalCostModel(String editsFile) throws IOException {
@@ -78,17 +77,20 @@ public class EmpiricalCostModel implements EditCostModel{
 				}
 			}
 			
-			Error error = detectDistanceOne(clean, noisy);
-			int errorType = error.errorType;
-			String errorPair = error.errorPair;
-			map = count.get(errorType);		// counter for corresponding error type
-			
-			// TODO: modify as dictionary type to make code clean!
-			if(map.containsKey(errorPair)){
-				map.put(errorPair, map.get(errorPair)+1);
-			}else{
-				map.put(errorPair, 1);
-			}			
+			try {
+			  Error error = detectDistanceOne(clean, noisy);
+	      int errorType = error.errorType;
+	      String errorPair = error.errorPair;
+	      map = count.get(errorType);   // counter for corresponding error type
+	      
+	      if(map.containsKey(errorPair)){
+	        map.put(errorPair, map.get(errorPair)+1);
+	      }else{
+	        map.put(errorPair, 1);
+	      }
+			} catch (Exception e) {
+			}
+						
 		}
 
 		input.close();
@@ -102,43 +104,43 @@ public class EmpiricalCostModel implements EditCostModel{
 		 */
 		int distance = pair.getSecond();
 		String prev = pair.getFirst();
-		// System.out.println("run editProbability");
 		if(distance == 0){
-			// System.out.println("dis == 0");
 			return CORRECT_PROB;
 		}
-		//original = original.trim();
-		//R = R.trim();
 		
 		Error error;
 		Error[] errors = new Error[2];
 		double prob;
 		
-		if(distance == 1){
-			// System.out.println("dis == 1");
-			// System.out.println("O: "+original + " CE: "+R);
-			error = detectDistanceOne (original, R);
-			prob = calculateProb (error);
-			return prob;
-		}else if(distance == 2){
-			double prob1, prob2;
-			errors[0] = detectDistanceOne (original, prev);
-			errors[1] = detectDistanceOne (prev, R);
-			prob1 = calculateProb (errors[0]);
-			prob2 = calculateProb (errors[1]);
-			prob = prob1*prob2;
-			return prob;
-		}else{
-			assert(distance <= 2): "can't process distance more than 2";
-			return 1e-6;
+		try {
+	    if(distance == 1){
+	      error = detectDistanceOne (original, R);
+	      prob = calculateProb (error);
+	      return prob;
+	    }else if(distance == 2){
+	      double prob1, prob2;
+	      errors[0] = detectDistanceOne (original, prev);
+	      errors[1] = detectDistanceOne (prev, R);
+	      prob1 = calculateProb (errors[0]);
+	      prob2 = calculateProb (errors[1]);
+	      prob = prob1*prob2;
+	      return prob;
+	    }else{
+	      return ERROR_PROB;
+	    }
+		} catch (Exception e){
+		  return ERROR_PROB;
 		}
+
 	}
 	private double calculateProb (Error error){
 		int errorType = error.errorType;
 		String errorPair = error.errorPair;
 		Map<String, Integer> map = count.get(errorType);
-		double num=1.0, den=numChar;
-		
+		double num = 1;
+		double den=num;
+		if(errorType == 1 || errorType == 2)
+	    den = den * numChar;
 		if( errorType == 0 || errorType == 3){	// del or trans
 			assert(errorPair.length() == 2): "wrong errorPair length";
 			if(map.containsKey(errorPair))
@@ -156,7 +158,7 @@ public class EmpiricalCostModel implements EditCostModel{
 		return num/den;
 
 	}
-	private Error detectDistanceOne (String original, String R){
+	private Error detectDistanceOne (String original, String R) throws Exception{
 		int errorType;
 		int lenOriginal = original.length();
 		int lenR = R.length();
@@ -164,14 +166,13 @@ public class EmpiricalCostModel implements EditCostModel{
 		String errorPair;
 		char pre, post;
 		
-		// System.out.println("original: "+original+" corrupted: "+R);
 		if(lenOriginal == lenR+1){	// del
 			i=0;
 			errorType = 0;
 			while(i<lenR && original.charAt(i) == R.charAt(i) )
 				i++;
 			if(i == 0){
-				pre = ' '; // use '*' to represent beginning of a sentence
+				pre = ' '; // use ' ' to represent beginning of a sentence
 				post = original.charAt(0);
 			}else{
 				pre = original.charAt(i-1);
@@ -183,16 +184,14 @@ public class EmpiricalCostModel implements EditCostModel{
 			while(i<lenOriginal && original.charAt(i) == R.charAt(i) )
 				i++;
 			if(i == 0){
-				pre = ' '; // use '*' to represent head
-				post = R.charAt(0);	// char been inserted
+				pre = ' ';
+				post = R.charAt(0);
 			}else{
 				pre = R.charAt(i-1);
 				post =R.charAt(i);
 			}
 		}else if (lenOriginal == lenR){	// sub OR trans
 			i=0;
-//			System.out.println ("O: "+original + "W: "+R);
-//      System.out.println ("O len: "+lenOriginal + "W len: "+lenR);			  
 			while(i<lenOriginal-1 && original.charAt(i) == R.charAt(i) )
 				i++;
 			if(i != lenOriginal-1 && original.charAt(i) == R.charAt(i+1) && original.charAt(i+1) == R.charAt(i)){
@@ -208,7 +207,6 @@ public class EmpiricalCostModel implements EditCostModel{
 		else{
 		  return new Error();
 		}
-		// System.out.println("errorType: "+errorType + " pre: "+pre +" post: "+post );
 		return new Error(errorType, ""+pre+post);
 	}
 

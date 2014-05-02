@@ -104,7 +104,6 @@ public class CandidateGenerator implements Serializable {
   //return strings of edit distance one, including splits, excluding merges
   public Set<Pair<String,Integer>> editDistanceOneWords(String qword, TriDictionary dict, boolean tolerate, int start){
     // use rules or not: need rules to avoid stupid mistakes
-    boolean rules = false;
     Character[] using = alphabet;
     
 	  Set<Pair<String,Integer>> possibles = new HashSet<Pair<String,Integer>>();
@@ -125,12 +124,6 @@ public class CandidateGenerator implements Serializable {
 	  if (start <= 4){
       for (Pair<String,String> split:splits){
         if (split.getSecond().length()>0){
-          // never delete a single letter word
-          if (rules && qword.length() == 1)
-            continue;
-          // never delete a number
-          if (rules && Character.isDigit(split.getSecond().charAt(0)))
-            continue;
           if (tolerate || (dict.countFirst(split.getFirst()+split.getSecond().substring(1))!=0))
             possibles.add(new Pair<String,Integer>(split.getFirst()+split.getSecond().substring(1),4));
         }
@@ -153,9 +146,6 @@ public class CandidateGenerator implements Serializable {
           for (Character c : using){
             // do not allow replacing with ' '
             if (c == ' ')
-              continue;
-            //never replace a number
-            if (rules && Character.isDigit(split.getSecond().charAt(0)))
               continue;
             if (tolerate ||dict.countFirst(split.getFirst()+ c +split.getSecond().substring(1))!=0)
               possibles.add(new Pair<String,Integer>(split.getFirst()+ c +split.getSecond().substring(1),0));

@@ -82,9 +82,15 @@ public class RunCorrector {
 	  int w_changed_right = 0;
 	  int right_unchanged = 0;
 	  int right_changed_wrong = 0;
-			
-		double mu = 0.7;
-	  double lambda = 0.05;
+	  
+	  int smooth_mode = 0;
+    double mu = 0.7;
+	  if(uniformOrEmpirical.equals("uniform")){
+	    mu = 0.7;
+	  }else{
+	    mu = 1.3;
+	  }
+		double lambda = 0.05;
 		/**************************************/
     
 		/*
@@ -95,7 +101,6 @@ public class RunCorrector {
 			
       String correctedQuery = query;
 			double highscore = Double.NEGATIVE_INFINITY;
-			int smooth_mode = 2;
 			double score;
       
       HashMap<String,Pair<String,Integer>> candidates = candidateGen.getCandidates(query,languageModel.unaryVals);
@@ -107,15 +112,6 @@ public class RunCorrector {
 		      highscore = score;
 		      correctedQuery = current;
 		    }
-			}
-  		if ("extra".equals(extra)) {
-				/*
-				 * If you are going to implement something regarding to running the corrector, 
-				 * you can add code here. Feel free to move this code block to wherever 
-				 * you think is appropriate. But make sure if you add "extra" parameter, 
-				 * it will run code for your extra credit and it will run you basic 
-				 * implementations without the "extra" parameter.
-				 */	
 			}
 			
 
@@ -139,9 +135,9 @@ public class RunCorrector {
             			else
               				w_changed_wrong++;
          		}
-					System.out.println("\nOriginal:  "+query);
-		      System.out.println("Corrected: "+correctedQuery);
-					System.out.println("Gold:      "+goldQuery);
+//					System.out.println("\nOriginal:  "+query);
+//		      System.out.println("Corrected: "+correctedQuery);
+//					System.out.println("Gold:      "+goldQuery);
 				}
 				totalCount++;				
 			}

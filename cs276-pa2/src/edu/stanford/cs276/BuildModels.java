@@ -48,6 +48,7 @@ public class BuildModels {
 		  List<String> blacklist = new ArrayList<String>();;
 		  blacklist.add("standford");
 		  blacklist.add("tressider");
+		  blacklist.add("accomodate");
 		  languageModel.unaryVals.purgeDict(blacklist);
 		}
 	}
