@@ -88,7 +88,9 @@ P_{KN}(w_i|w_{i-1})=\frac{max(c(w_{i-1},w_i)-d,0)}{c(w_{i-1})}+\lambda(w_{i-1})P
 P_{CONT}(w) = \frac{|\{w_{i-1:c(w_{i-1},w)>0\}|}}{\sum_{w'}|\{w':c(w'_{i-1},w')>0\}|}
 \end{equation*}
 
-After we implemented Kneser-Ney smoothing, we used the new smoothing method for our corrector. After tuning parameters such as $\mu$, we were able to get 90.6\% accuracy, a slight improvement on basic interpolation smoothing. 
+After we implemented Kneser-Ney smoothing, we used the new smoothing method for our corrector. After tuning parameters such as $\mu$, we were able to get 90.6\% accuracy, a slight improvement on basic interpolation smoothing.
+
+In terms of running time, we see that they are very similar. If you look at the equations, the amount of computation needed for the original interpolation is largely the same as Kneser-Ney smoothing.
 \section{Parameter Tuning}
 In this section we focus on two parameters that give obvious changes in performance when tuned: for empirical edit costs, $\mu$, the weight of the language model in the final candidate score, and for uniform costs, the edit probability.
 
