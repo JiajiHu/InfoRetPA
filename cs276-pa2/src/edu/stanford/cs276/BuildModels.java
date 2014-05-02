@@ -32,24 +32,18 @@ public class BuildModels {
 
 		languageModel =  LanguageModel.create(trainingCorpus);
 		noisyChannelModel = NoisyChannelModel.create(editsFile);
-
+		if ("extra".equals(extra)) {
+		  // add a blacklist of popular misspellings -> should include more, but this will do for now
+		  List<String> blacklist = new ArrayList<String>();;
+      blacklist.add("standford");
+      blacklist.add("tressider");
+      blacklist.add("accomodate");
+      languageModel.unaryVals.purgeDict(blacklist);
+    }
 		// Save the models to disk
 		noisyChannelModel.save();
 		languageModel.save();
 		
-		if ("extra".equals(extra)) {
-			/*
-			 * If you are going to implement something regarding to building models, 
-			 * you can add code here. Feel free to move this code block to wherever 
-			 * you think is appropriate. But make sure if you add "extra" parameter, 
-			 * it will run code for your extra credit and it will run you basic 
-			 * implementations without the "extra" parameter.
-			 */	
-		  List<String> blacklist = new ArrayList<String>();;
-		  blacklist.add("standford");
-		  blacklist.add("tressider");
-		  blacklist.add("accomodate");
-		  languageModel.unaryVals.purgeDict(blacklist);
-		}
+		
 	}
 }

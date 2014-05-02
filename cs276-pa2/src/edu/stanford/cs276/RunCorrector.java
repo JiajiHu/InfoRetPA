@@ -142,24 +142,25 @@ public class RunCorrector {
 				}
 				totalCount++;				
 			}
+//	    System.out.println(correctedQuery);
 		}
 		queriesFileReader.close();
 
-		System.out.println("\n***********************************************");
-	    System.out.println("Correct "+ Integer.toString(yourCorrectCount));
-	    System.out.println("Total "+ Integer.toString(totalCount));
-	    System.out.println("Percentage "+ Double.toString((yourCorrectCount+0.0)/totalCount));
-
-	    System.out.println("Correct unchanged "+ Integer.toString(right_unchanged));
-	    System.out.println("Wrong to right "+ Integer.toString(w_changed_right));
-	    System.out.println("Wrong to wrong "+ Integer.toString(w_changed_wrong));
-	    System.out.println("Wrong unchanged "+ Integer.toString(wrong_unchanged));
-	    System.out.println("Correct to wrong "+ Integer.toString(right_changed_wrong));
-	    
-	    System.out.println("Total candidates generated: "+Integer.toString(totalCand));
+//		System.out.println("\n***********************************************");
+//	    System.out.println("Correct "+ Integer.toString(yourCorrectCount));
+//	    System.out.println("Total "+ Integer.toString(totalCount));
+//	    System.out.println("Percentage "+ Double.toString((yourCorrectCount+0.0)/totalCount));
+//
+//	    System.out.println("Correct unchanged "+ Integer.toString(right_unchanged));
+//	    System.out.println("Wrong to right "+ Integer.toString(w_changed_right));
+//	    System.out.println("Wrong to wrong "+ Integer.toString(w_changed_wrong));
+//	    System.out.println("Wrong unchanged "+ Integer.toString(wrong_unchanged));
+//	    System.out.println("Correct to wrong "+ Integer.toString(right_changed_wrong));
+//	    
+//	    System.out.println("Total candidates generated: "+Integer.toString(totalCand));
 
 		long endTime   = System.currentTimeMillis();
 		long totalTime = endTime - startTime;
-		 System.out.println("RUNNING TIME: "+totalTime/1000+" seconds ");
+//		 System.out.println("RUNNING TIME: "+totalTime/1000+" seconds ");
 	}
 }

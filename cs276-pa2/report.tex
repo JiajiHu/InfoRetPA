@@ -98,9 +98,7 @@ When $\mu$ increases, the system puts a larger weight on the language model comp
 \end{figure}
 
 For uniform cost edit probability, the system is reluctant to perform an edit while the value is small, so you have small risk of wrongly modifying a correct query, but may not do correct modifications. As the value rises, there is a ``sweet spot" where accuracy peaks, and then accuracy plummets as the system is increasingly encouraged to make edits to fit the language model, often erroneously.
-\begin{figure}[H]
-\includegraphics[width=0.9\linewidth]{editprob}
-\end{figure}
+
 Also, we note that a query can only produce 5 types of outcomes, based on whether the input was correct in the first place, whether the spell corrector modified the query, and whether the output was correct. These statistics are important in understanding what kind of mistakes the corrector is making.
 \begin{figure}[H]
 \includegraphics[width=0.9\linewidth]{editprob_err}
