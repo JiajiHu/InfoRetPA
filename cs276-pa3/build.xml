@@ -1,4 +1,4 @@
-<project name="pa3" default="dist" basedir=".">
+<project name="cs276-pa3" default="dist" basedir=".">
     <description>
         simple example bin file
     </description>
