@@ -61,7 +61,7 @@ public class CosineSimilarityScorer extends AScorer
 		
 		this.normalizeTFs(tfs, d, q);
 		
-		Map<String,Double> tfQuery = getQueryFreqs(q);
+		Map<String,Double> tfQuery = getQueryFreqs(q,subLinear);
 		
 		
         return getNetScore(tfs,q,tfQuery,d);

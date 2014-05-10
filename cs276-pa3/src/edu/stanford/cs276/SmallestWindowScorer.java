@@ -41,7 +41,7 @@ public class SmallestWindowScorer extends BM25Scorer {
 
     this.normalizeTFs(tfs, d, q);
 
-    Map<String, Double> tfQuery = getQueryFreqs(q);
+    Map<String, Double> tfQuery = getQueryFreqs(q,subLinear);
 
     return 0;
   }

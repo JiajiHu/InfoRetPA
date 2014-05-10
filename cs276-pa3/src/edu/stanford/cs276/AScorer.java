@@ -20,24 +20,27 @@ public abstract class AScorer {
   public abstract double getSimScore(Document d, Query q);
 
   // handle the query vector
-  public Map<String, Double> getQueryFreqs(Query q) {
+  public Map<String, Double> getQueryFreqs(Query q, boolean subLinear) {
     Map<String, Double> tfQuery = new HashMap<String, Double>();
 
     /******************************************/
     for (String word : q.queryWords) {
       if (tfQuery.containsKey(word))
         tfQuery.put(word, 1.0);
-      else
+      else {
         tfQuery.put(word, tfQuery.get(word) + 1.0);
+      }
+    }
+    if (subLinear) {
+      for (String word : tfQuery.keySet()) {
+        tfQuery.put(word, 1.0 + Math.log(tfQuery.get(word)));
+      }
     }
     /******************************************/
-    // @TODO: possible to use sublinear
-
     return tfQuery;
   }
 
   // //////////////////Initialization/Parsing Methods/////////////////////
-  // @TODO: possible to use sublinear
   /******************************************/
   public Map<String, Double> parseURL(String url) {
     Map<String, Double> u_tf = new HashMap<String, Double>();
@@ -120,7 +123,8 @@ public abstract class AScorer {
       for (Field field : Field.values()) {
         if (tfs.get(field).containsKey(queryWord)) {
           if (subLinear)
-            q_tfs.get(field).put(queryWord,1.0+Math.log(tfs.get(field).get(queryWord)));
+            q_tfs.get(field).put(queryWord,
+                1.0 + Math.log(tfs.get(field).get(queryWord)));
           else
             q_tfs.get(field).put(queryWord, tfs.get(field).get(queryWord));
         }

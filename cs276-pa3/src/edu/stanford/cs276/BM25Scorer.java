@@ -90,7 +90,7 @@ public class BM25Scorer extends AScorer {
 
     this.normalizeTFs(tfs, d, q);
 
-    Map<String, Double> tfQuery = getQueryFreqs(q);
+    Map<String, Double> tfQuery = getQueryFreqs(q,subLinear);
 
     return getNetScore(tfs, q, tfQuery, d);
   }
