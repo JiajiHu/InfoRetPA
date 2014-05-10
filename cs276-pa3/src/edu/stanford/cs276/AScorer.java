@@ -25,10 +25,10 @@ public abstract class AScorer {
 
     /******************************************/
     for (String word : q.queryWords) {
-      if (tfQuery.containsKey(word))
-        tfQuery.put(word, 1.0);
-      else {
+      if (tfQuery.containsKey(word)) {
         tfQuery.put(word, tfQuery.get(word) + 1.0);
+      } else {
+        tfQuery.put(word, 1.0);
       }
     }
     if (subLinear) {
@@ -44,6 +44,8 @@ public abstract class AScorer {
   /******************************************/
   public Map<String, Double> parseURL(String url) {
     Map<String, Double> u_tf = new HashMap<String, Double>();
+    if (url == null)
+      return u_tf;
     String[] tokens = url.trim().split("\\W+");
     for (String token : tokens) {
       if (u_tf.containsKey(token))
@@ -56,6 +58,8 @@ public abstract class AScorer {
 
   public Map<String, Double> parseTitle(String title) {
     Map<String, Double> t_tf = new HashMap<String, Double>();
+    if (title == null)
+      return t_tf;
     String[] tokens = title.trim().split("\\s+");
     for (String token : tokens) {
       if (t_tf.containsKey(token))
@@ -68,21 +72,28 @@ public abstract class AScorer {
 
   public Map<String, Double> parseHeader(List<String> header) {
     Map<String, Double> h_tf = new HashMap<String, Double>();
-    for (String token : header) {
-      if (h_tf.containsKey(token))
-        h_tf.put(token, h_tf.get(token) + 1.0);
-      else
-        h_tf.put(token, 1.0);
+    if (header == null)
+      return h_tf;
+    for (String head : header) {
+      String[] tokens = head.trim().split("\\s+");
+      for (String token:tokens){
+        if (h_tf.containsKey(token))
+          h_tf.put(token, h_tf.get(token) + 1.0);
+        else
+          h_tf.put(token, 1.0);        
+      }
     }
     return h_tf;
   }
 
   public Map<String, Double> parseAnchor(Map<String, Integer> anchor) {
     Map<String, Double> a_tf = new HashMap<String, Double>();
+    if (anchor == null)
+      return a_tf;
     for (String anchor_text : anchor.keySet()) {
       for (String token : anchor_text.split("\\s+")) {
         if (a_tf.containsKey(token))
-          a_tf.put(token, (double) (anchor.get(anchor_text)+a_tf.get(token)));
+          a_tf.put(token, (double) (anchor.get(anchor_text) + a_tf.get(token)));
         else
           a_tf.put(token, (double) anchor.get(anchor_text));
       }
@@ -92,6 +103,8 @@ public abstract class AScorer {
 
   public Map<String, Double> parseBody(Map<String, List<Integer>> body) {
     Map<String, Double> b_tf = new HashMap<String, Double>();
+    if (body == null)
+      return b_tf;
     for (String token : body.keySet()) {
       b_tf.put(token, (double) body.get(token).size());
     }
@@ -120,6 +133,9 @@ public abstract class AScorer {
 
     // ////////handle counts//////
 
+    for (Field field : Field.values()) {
+      q_tfs.put(field, new HashMap<String, Double>());
+    }
     // loop through query terms increasing relevant tfs
     for (String queryWord : q.queryWords) {
       for (Field field : Field.values()) {
