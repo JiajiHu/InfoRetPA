@@ -79,8 +79,13 @@ public abstract class AScorer {
 
   public Map<String, Double> parseAnchor(Map<String, Integer> anchor) {
     Map<String, Double> a_tf = new HashMap<String, Double>();
-    for (String token : anchor.keySet()) {
-      a_tf.put(token, (double) anchor.get(token));
+    for (String anchor_text : anchor.keySet()) {
+      for (String token : anchor_text.split("\\s+")) {
+        if (a_tf.containsKey(token))
+          a_tf.put(token, (double) (anchor.get(anchor_text)+a_tf.get(token)));
+        else
+          a_tf.put(token, (double) anchor.get(anchor_text));
+      }
     }
     return a_tf;
   }
@@ -115,11 +120,8 @@ public abstract class AScorer {
 
     // ////////handle counts//////
 
-    Set<String> seen = new HashSet<String>();
     // loop through query terms increasing relevant tfs
     for (String queryWord : q.queryWords) {
-      if (seen.contains(queryWord))
-        continue;
       for (Field field : Field.values()) {
         if (tfs.get(field).containsKey(queryWord)) {
           if (subLinear)
@@ -129,7 +131,6 @@ public abstract class AScorer {
             q_tfs.get(field).put(queryWord, tfs.get(field).get(queryWord));
         }
       }
-      seen.add(queryWord);
     }
     return q_tfs;
     /******************************************/
