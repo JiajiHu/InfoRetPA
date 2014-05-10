@@ -23,13 +23,14 @@ public class CosineSimilarityScorer extends AScorer
 	}
 	
 	///////////////weights///////////////////////////
-    double urlweight = -1;
-    double titleweight  = -1;
-    double bodyweight = -1;
-    double headerweight = -1;
-    double anchorweight = -1;
+    private final double URL_WEIGHT = -1;
+    private final double TITLE_WEIGHT  = -1;
+    private final double BODY_WEIGHT = -1;
+    private final double HEADER_WEIGHT = -1;
+    private final double ANCHOR_WEIGHT = -1;
     
-    double smoothingBodyLength = -1;
+    private final double SMOOTHING_BODY_LENGTH = -1;
+    private final boolean subLinear = false;
     //////////////////////////////////////////
 	
 	public double getNetScore(Map<Field,Map<String, Double>> tfs, Query q, Map<String,Double> tfQuery,Document d)
@@ -56,7 +57,7 @@ public class CosineSimilarityScorer extends AScorer
 	public double getSimScore(Document d, Query q) 
 	{
 		
-		Map<Field,Map<String, Double>> tfs = this.getDocTermFreqs(d,q);
+		Map<Field,Map<String, Double>> tfs = this.getDocTermFreqs(d,q,subLinear);
 		
 		this.normalizeTFs(tfs, d, q);
 		
