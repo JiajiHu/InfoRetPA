@@ -46,7 +46,7 @@ public class Rank {
         @Override
         public int compare(Pair<String, Double> o1, Pair<String, Double> o2) {
           /****************************************/
-          if(o1.getSecond()<o2.getSecond())
+          if (o1.getSecond() < o2.getSecond())
             return 1;
           return -1;
           /****************************************/

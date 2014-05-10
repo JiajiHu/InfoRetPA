@@ -142,17 +142,18 @@ public class LoadHandler {
         }
       }
     }
-//    System.out.println(totalDocCount);
+    // System.out.println(totalDocCount);
     /*********************************************/
 
     // make idf
     for (String term : termDocCount.keySet()) {
       /*********************************************/
-      termDocCount.put(term, (termDocCount.get(term)+1.0)/(totalDocCount+1));
-      /*********************************************/
+      termDocCount.put(term,
+          Math.log((totalDocCount + 1) / (termDocCount.get(term) + 1.0)));
     }
-    termDocCount.put("unseen term", 1.0/(totalDocCount+1.0));
-    
+    termDocCount.put("unseen term", Math.log((totalDocCount + 1.0)));
+    /*********************************************/
+
     // saves to file
     try {
       FileOutputStream fos = new FileOutputStream(idfFile);

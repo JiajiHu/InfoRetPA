@@ -18,9 +18,6 @@ public class CosineSimilarityScorer extends AScorer {
   private final double SMOOTHING_BODY_LENGTH = 500;
   private final boolean subLinear = false;
 
-  
-  // HJJ NOTE: NDCG score seems to drop by 0.01 when using idf normalization, 
-  // might be because of bad weights - May.10
   public double getNetScore(Map<Field, Map<String, Double>> tfs, Query q,
       Map<String, Double> tfQuery, Document d) {
     /******************************************/
@@ -32,7 +29,7 @@ public class CosineSimilarityScorer extends AScorer {
       Map<String, Double> tfs_field = tfs.get(field);
       for (String word : q.queryWords) {
         double idf_val;
-        if(idfs.containsKey(word))
+        if (idfs.containsKey(word))
           idf_val = idfs.get(word);
         else
           idf_val = idfs.get("unseen term");
