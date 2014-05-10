@@ -146,6 +146,8 @@ public abstract class AScorer {
           else
             q_tfs.get(field).put(queryWord, tfs.get(field).get(queryWord));
         }
+        else
+          q_tfs.get(field).put(queryWord, 0.0);
       }
     }
     return q_tfs;
