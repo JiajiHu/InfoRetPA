@@ -145,7 +145,7 @@ public class LoadHandler {
         }
       }
     }
-    System.out.println(totalDocCount);
+//    System.out.println(totalDocCount);
     /*********************************************/
 
     // make idf
