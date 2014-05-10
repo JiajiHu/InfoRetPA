@@ -32,7 +32,7 @@ public class CosineSimilarityScorer extends AScorer
     double smoothingBodyLength = -1;
     //////////////////////////////////////////
 	
-	public double getNetScore(Map<String,Map<String, Double>> tfs, Query q, Map<String,Double> tfQuery,Document d)
+	public double getNetScore(Map<Field,Map<String, Double>> tfs, Query q, Map<String,Double> tfQuery,Document d)
 	{
 		double score = 0.0;
 		
@@ -44,7 +44,7 @@ public class CosineSimilarityScorer extends AScorer
 	}
 
 	
-	public void normalizeTFs(Map<String,Map<String, Double>> tfs,Document d, Query q)
+	public void normalizeTFs(Map<Field,Map<String, Double>> tfs,Document d, Query q)
 	{
 		/*
 		 * @//TODO : Your code here
@@ -56,7 +56,7 @@ public class CosineSimilarityScorer extends AScorer
 	public double getSimScore(Document d, Query q) 
 	{
 		
-		Map<String,Map<String, Double>> tfs = this.getDocTermFreqs(d,q);
+		Map<Field,Map<String, Double>> tfs = this.getDocTermFreqs(d,q);
 		
 		this.normalizeTFs(tfs, d, q);
 		

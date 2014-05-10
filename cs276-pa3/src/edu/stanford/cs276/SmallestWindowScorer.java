@@ -41,7 +41,7 @@ public class SmallestWindowScorer extends BM25Scorer
 	
 	@Override
 	public double getSimScore(Document d, Query q) {
-		Map<String,Map<String, Double>> tfs = this.getDocTermFreqs(d,q);
+		Map<Field,Map<String, Double>> tfs = this.getDocTermFreqs(d,q);
 		
 		this.normalizeTFs(tfs, d, q);
 		

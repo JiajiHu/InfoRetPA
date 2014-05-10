@@ -56,7 +56,7 @@ public class BM25Scorer extends AScorer
 		 */
     	
     	//normalize avgLengths
-		for (String tfType : this.TFTYPES)
+		for (Field field : Field.values())
 		{
 			/*
 			 * @//TODO : Your code here
@@ -68,7 +68,7 @@ public class BM25Scorer extends AScorer
     ////////////////////////////////////
     
     
-	public double getNetScore(Map<String,Map<String, Double>> tfs, Query q, Map<String,Double> tfQuery,Document d)
+	public double getNetScore(Map<Field,Map<String, Double>> tfs, Query q, Map<String,Double> tfQuery,Document d)
 	{
 		double score = 0.0;
 		
@@ -80,7 +80,7 @@ public class BM25Scorer extends AScorer
 	}
 
 	//do bm25 normalization
-	public void normalizeTFs(Map<String,Map<String, Double>> tfs,Document d, Query q)
+	public void normalizeTFs(Map<Field,Map<String, Double>> tfs,Document d, Query q)
 	{
 		/*
 		 * @//TODO : Your code here
@@ -92,7 +92,7 @@ public class BM25Scorer extends AScorer
 	public double getSimScore(Document d, Query q) 
 	{
 		
-		Map<String,Map<String, Double>> tfs = this.getDocTermFreqs(d,q);
+		Map<Field,Map<String, Double>> tfs = this.getDocTermFreqs(d,q);
 		
 		this.normalizeTFs(tfs, d, q);
 		

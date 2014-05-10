@@ -9,8 +9,6 @@ import java.util.Map;
 public abstract class AScorer {
 
   Map<String, Double> idfs;
-  String[] TFTYPES = { "url", "title", "body", "header", "anchor" };
-
   public AScorer(Map<String, Double> idfs) {
     this.idfs = idfs;
   }
@@ -22,9 +20,14 @@ public abstract class AScorer {
   public Map<String, Double> getQueryFreqs(Query q) {
     Map<String, Double> tfQuery = new HashMap<String, Double>();
 
-    /*
-     * @//TODO : Your code here
-     */
+    /******************************************/
+    for (String word : q.queryWords) {
+      if (tfQuery.containsKey(word))
+        tfQuery.put(word, 1.0);
+      else
+        tfQuery.put(word, tfQuery.get(word) + 1.0);
+    }
+    /******************************************/
 
     return tfQuery;
   }
@@ -42,9 +45,9 @@ public abstract class AScorer {
    * and anchor) You can override this if you'd like, but it's likely that your
    * concrete classes will share this implementation
    */
-  public Map<String, Map<String, Double>> getDocTermFreqs(Document d, Query q) {
+  public Map<Field, Map<String, Double>> getDocTermFreqs(Document d, Query q) {
     // map from tf type -> queryWord -> score
-    Map<String, Map<String, Double>> tfs = new HashMap<String, Map<String, Double>>();
+    Map<Field, Map<String, Double>> tfs = new HashMap<Field, Map<String, Double>>();
 
     // //////////////////Initialization/////////////////////
 
