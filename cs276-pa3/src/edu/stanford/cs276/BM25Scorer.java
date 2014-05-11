@@ -17,23 +17,23 @@ public class BM25Scorer extends AScorer {
   Map<String, Double> bWeights;
   
   // weights
-  private final double URL_WEIGHT = -1;
-  private final double TITLE_WEIGHT = -1;
-  private final double BODY_WEIGHT = -1;
-  private final double HEADER_WEIGHT = -1;
-  private final double ANCHOR_WEIGHT = -1;
+  private final double URL_WEIGHT = 1;
+  private final double TITLE_WEIGHT = 1;
+  private final double BODY_WEIGHT = 1;
+  private final double HEADER_WEIGHT = 1;
+  private final double ANCHOR_WEIGHT = 1;
   
   // bm25 specific weights
-  private final double B_URL = -1;
-  private final double B_TITLE = -1;
-  private final double B_HEADER = -1;
-  private final double B_BODY = -1;
-  private final double B_ANCHOR = -1;
+  private final double B_URL = 0.5;
+  private final double B_TITLE = 0.5;
+  private final double B_HEADER = 0.5;
+  private final double B_BODY = 0.5;
+  private final double B_ANCHOR = 0.5;
 
-  private final double K1 = -1;
-  private final double PR_Lambda = -1;
-  private final double PR_LambdaPrime = -1;
-  private final double PR_LambdaPrime2 = -1;	// for the 3rd type of V function
+  private final double K1 = 1;
+  private final double PR_Lambda = 0.5;
+  private final double PR_LambdaPrime = 0.5;
+  private final double PR_LambdaPrime2 = 0.5;	// for the 3rd type of V function
   
   private final boolean subLinear = false;
   
