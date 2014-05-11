@@ -6,6 +6,10 @@ import java.util.List;
 import java.util.Map;
 
 import edu.stanford.cs276.util.Pair;
+import java.util.Collections;
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Collection;
 
 public class BM25Scorer extends AScorer {
   Map<Query, Map<String, Document>> queryDict;
@@ -29,6 +33,8 @@ public class BM25Scorer extends AScorer {
   private final double K1 = -1;
   private final double PR_Lambda = -1;
   private final double PR_LambdaPrime = -1;
+  private final double PR_LambdaPrime2 = -1;	// for the 3rd type of V function
+  
   private final boolean subLinear = false;
   
   Map<Document, Map<String, Double>> lengths;	// doc->field->length
@@ -62,77 +68,155 @@ public class BM25Scorer extends AScorer {
     lengths = new HashMap<Document, Map<String, Double>>();
     avgLengths = new HashMap<String, Double>();
     pagerankScores = new HashMap<Document, Double>();
-
+   
     /****************************************/
     int numField = Field.values().length;
-    List<Double> count = new ArrayList<Double>();	// Store as the follwoing order: URL,TITLE,BODY,HEADER,ANCHOR 
-    List<Double> sum = new ArrayList<Double>();
-    for(int i=0; i<numField; i++){
-    	count.set(i, 0.0);
-    	sum.set(i, 0.0);
+    Map<String, Double> count = new HashMap<String, Double>();	// field name -> num of field over all docs
+    Map<String, Double> sum = new HashMap<String, Double>();	// field name -> len of field over all docs
+    
+    // initialize
+    for(Field field: Field.values()){
+    	count.put(field.name(), 0.0);
+    	sum.put(field.name(), 0.0);
+    	avgLengths.put(field.name(), 0.0);
     }
     
-    // loop through queries
+    // loop through queries to populate lengths, avgLengths, pagerankScores
     for (Query query : queryDict.keySet()) {
     	Map<String, Document> mapUrl = queryDict.get(query);
     	for (String url : queryDict.get(query).keySet()) {
         	Document doc = mapUrl.get(url);
         	pagerankScores.put(doc, (double) doc.page_rank);
+        	Map<String, Double> fieldLen = new HashMap<String, Double>();	// field name -> len
         	
         	// 0: url
+        	String fieldName = "URL";
         	Map<String, Double> temp = parseURL(doc.url);
-        	sum.set(0, sum.get(0)+temp.values().size());
-        	count.set(0, count.get(0)+1.0);
+        	double len = temp.values().size();
+        	fieldLen.put(fieldName, len);
+        	sum.put(fieldName, sum.get(fieldName)+len);
+        	count.put(fieldName, count.get(fieldName)+1.0);
         	
         	// 1: title
+        	fieldName = "TITLE";
         	temp = parseTitle(doc.title);
-        	sum.set(1, sum.get(1)+temp.values().size());
-        	count.set(1, count.get(1)+1.0);
+        	len = temp.values().size();
+        	fieldLen.put(fieldName, len);
+        	sum.put(fieldName, sum.get(fieldName)+len);
+        	count.put(fieldName, count.get(fieldName)+1.0);
         	
         	// 2: body
-        	sum.set(2, sum.get(2)+doc.body_length);
-        	count.set(2, count.get(2)+1.0);
+        	fieldName = "BODY";
+        	len = doc.body_length;
+        	fieldLen.put(fieldName, len);
+        	sum.put(fieldName, sum.get(fieldName)+len);
+        	count.put(fieldName, count.get(fieldName)+1.0);
         	
         	// 3: header
-        	temp = parseHeader(doc.headers);
-        	sum.set(3, sum.get(3)+temp.values().size());
-        	count.set(3, count.get(3)+doc.headers.size());
-        	
-        	// 4: anchor
-        	for(String anchor: doc.anchors.keySet()){
-        		String[] splited = anchor.split("\\s+");
-        		sum.set(4, sum.get(4)+splited.length);
-        		count.set(4, count.get(4)+1.0);
+        	fieldName = "HEADER";
+        	if(doc.headers != null){
+        		temp = parseHeader(doc.headers);
+            	len = getSum(temp.values());
+            	fieldLen.put(fieldName, len);
+            	sum.put(fieldName, sum.get(fieldName)+len);
+            	count.put(fieldName, count.get(fieldName)+doc.headers.size());
+        	}else{
+        		fieldLen.put(fieldName, 0.0);
         	}
         	
+        	// 4: anchor
+        	fieldName = "ANCHOR";
+        	if(doc.anchors != null){
+        		len = 0.0;
+        		for(String anchor: doc.anchors.keySet()){
+            		String[] splited = anchor.split("\\s+");
+            		len += splited.length;
+            		sum.put(fieldName, sum.get(fieldName)+splited.length);
+            		count.put(fieldName, count.get(fieldName)+1.0);
+            	}
+        		fieldLen.put(fieldName, len);
+        	}else{
+        		fieldLen.put(fieldName, 0.0);
+        	}
+        	lengths.put(doc, fieldLen);
         }
     }
     
     // calculate average length
-    Field[] fields = Field.values();
-    System.out.println("check: URL,TITLE,BODY,HEADER,ANCHOR == "+fields);
-    
-    for(int i=0; i<numField; i++){
-    	String field = fields[i].name();
-    	avgLengths.put(field, sum.get(i)/count.get(i));
+    for(Field field: Field.values()){
+    	String fieldName = field.name();
+    	avgLengths.put(fieldName, sum.get(fieldName)/count.get(fieldName));
     }
     /****************************************/
   } 
-  public double getNetScore(Map<Field, Map<String, Double>> tfs, Query q,
-      Map<String, Double> tfQuery, Document d) {
-    double score = 0.0;
-
-    /****************************************/
-    
-    /****************************************/
-    
-    return score;
+  private double getSum (Collection<Double> c){
+	  double res = 0.0;
+	  for(double d: c){
+		  res += d;
+	  }
+	  return res;
   }
-
+  public double getNetScore(Map<Field, Map<String, Double>> tfs, Query q, Map<String, Double> tfQuery, Document d) {
+	  double score = 0.0;
+	  /****************************************/
+	  for(Field field: Field.values()){
+		  Map<String, Double> map = tfs.get(field);
+		  String fieldName = field.name();
+		  double weight = weights.get(fieldName);
+		  for(String word: map.keySet()){
+			  if(idfs.containsKey(word)){
+				  score += map.get(word)*weight*idfs.get(word)/(K1+map.get(word));
+			  }else{	
+				  score += map.get(word)*weight*idfs.get("unseen term")/(K1+map.get(word));
+			  }  
+		  }
+	  }
+	  // TODO: make sure how V(f) works?
+	  score += PR_Lambda*pagerankScores.get(d);
+	  /****************************************/
+	  return score;
+  }
+  private double functionV(int select, double f){
+	  // TODO: meaning of lambda
+	  double res = 0.0;
+	  if(select == 0){
+		  res = Math.log(PR_LambdaPrime+f);
+	  }else if(select == 1){
+		  res = f/(PR_LambdaPrime+f);
+	  }else{
+		  res = 1/(PR_LambdaPrime+Math.exp(-f*PR_LambdaPrime2));
+	  }
+	  return res;
+  }
+  
   // do bm25 normalization
   public void normalizeTFs(Map<Field, Map<String, Double>> tfs, Document d, Query q) {
 	  /****************************************/
-	    
+	  for(Field field: Field.values()){
+		  Map<String, Double> map = tfs.get(field);
+		  String fieldName = field.name();
+		  double b_weight = bWeights.get(fieldName);
+		  double avgLen = avgLengths.get(fieldName);
+		  double len = avgLen;	// TODO: how to deal with length >
+		  
+		  if(lengths.containsKey(d)){
+			  Map<String, Double> temp2 = lengths.get(d);
+			  len = temp2.get(fieldName);
+		  }
+		  
+		  double norm = 1+b_weight*(len/avgLen-1);
+		  
+		  if(Math.abs(avgLen) < 1e-4){
+			  System.out.println("shouldn't happen in this data set");
+			  for(String word: map.keySet()){
+				  map.put(word, 0.0);
+			  }
+		  }else{
+			  for(String word: map.keySet()){
+				  map.put(word, map.get(word)/norm);
+			  }
+		  }  
+	  } 
 	  /****************************************/  
   }
 
