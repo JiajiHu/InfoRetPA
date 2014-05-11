@@ -12,9 +12,7 @@ import edu.stanford.cs276.util.Pair;
 
 public class Rank {
 
-  private static Map<Query, List<String>> score(
-      Map<Query, Map<String, Document>> queryDict, String scoreType,
-      Map<String, Double> idfs) {
+  private static Map<Query, List<String>> score( Map<Query, Map<String, Document>> queryDict, String scoreType, Map<String, Double> idfs) {
     AScorer scorer = null;
     if (scoreType.equals("baseline"))
       scorer = new BaselineScorer();
