@@ -200,8 +200,7 @@ public class BM25Scorer extends AScorer {
 		  double len = avgLen;	// TODO: how to deal with length >
 		  
 		  if(lengths.containsKey(d)){
-			  Map<String, Double> temp2 = lengths.get(d);
-			  len = temp2.get(fieldName);
+			  len = lengths.get(d).get(fieldName);
 		  }
 		  
 		  double norm = 1+b_weight*(len/avgLen-1);
