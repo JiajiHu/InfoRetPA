@@ -44,9 +44,9 @@ public class Rank {
         @Override
         public int compare(Pair<String, Double> o1, Pair<String, Double> o2) {
           /****************************************/
-          if(o1.getSecond()<o2.getSecond())
-            return -1;
-          return 1;
+          if (o1.getSecond() < o2.getSecond())
+            return 1;
+          return -1;
           /****************************************/
         }
       });
@@ -120,7 +120,7 @@ public class Rank {
     /*********************************************/
     String dataDir = "data/corpus";
     String idfFile = "idfFile";
-    LoadHandler.buildDFs(dataDir, idfFile);
+    idfs = LoadHandler.buildDFs(dataDir, idfFile);
     /*********************************************/
 
     if (args.length < 2) {

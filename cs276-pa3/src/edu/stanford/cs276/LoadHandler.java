@@ -3,19 +3,16 @@ package edu.stanford.cs276;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class LoadHandler {
 
@@ -145,17 +142,18 @@ public class LoadHandler {
         }
       }
     }
-//    System.out.println(totalDocCount);
+    // System.out.println(totalDocCount);
     /*********************************************/
 
     // make idf
     for (String term : termDocCount.keySet()) {
       /*********************************************/
-      termDocCount.put(term, (termDocCount.get(term)+1.0)/(totalDocCount+1));
-      /*********************************************/
+      termDocCount.put(term,
+          Math.log((totalDocCount + 1) / (termDocCount.get(term) + 1.0)));
     }
-    termDocCount.put("unseen term", 1.0/(totalDocCount+1.0));
-    
+    termDocCount.put("unseen term", Math.log((totalDocCount + 1.0)));
+    /*********************************************/
+
     // saves to file
     try {
       FileOutputStream fos = new FileOutputStream(idfFile);

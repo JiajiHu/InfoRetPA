@@ -1,12 +1,8 @@
 package edu.stanford.cs276;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public abstract class AScorer {
 
@@ -76,11 +72,11 @@ public abstract class AScorer {
       return h_tf;
     for (String head : header) {
       String[] tokens = head.trim().split("\\s+");
-      for (String token:tokens){
+      for (String token : tokens) {
         if (h_tf.containsKey(token))
           h_tf.put(token, h_tf.get(token) + 1.0);
         else
-          h_tf.put(token, 1.0);        
+          h_tf.put(token, 1.0);
       }
     }
     return h_tf;
@@ -145,8 +141,7 @@ public abstract class AScorer {
                 1.0 + Math.log(tfs.get(field).get(queryWord)));
           else
             q_tfs.get(field).put(queryWord, tfs.get(field).get(queryWord));
-        }
-        else
+        } else
           q_tfs.get(field).put(queryWord, 0.0);
       }
     }
