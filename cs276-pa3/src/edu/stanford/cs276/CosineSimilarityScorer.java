@@ -8,14 +8,14 @@ public class CosineSimilarityScorer extends AScorer {
   }
 
   // /////////////weights///////////////////////////
-  private final double URL_WEIGHT = 1;
-  private final double TITLE_WEIGHT = 1;
+  private final double URL_WEIGHT = 5;
+  private final double TITLE_WEIGHT = 5;
   private final double BODY_WEIGHT = 1;
   private final double HEADER_WEIGHT = 1;
   private final double ANCHOR_WEIGHT = 1;
   private final double[] WEIGHTS = { URL_WEIGHT, TITLE_WEIGHT, BODY_WEIGHT,
       HEADER_WEIGHT, ANCHOR_WEIGHT };
-  private final double SMOOTHING_BODY_LENGTH = 500;
+  private final double SMOOTHING_BODY_LENGTH = 1000;
   private final boolean subLinear = false;
 
   public double getNetScore(Map<Field, Map<String, Double>> tfs, Query q,

@@ -1,0 +1,41 @@
+Cosine
+
+- Weights:
+-- url
+-- title
+-- body
+-- header
+-- anchor
+
+- Smoothing body length
+
+----------------------------------------------------------------
+BM25
+
+- Weights:
+-- url
+-- title
+-- body
+-- header
+-- anchor
+
+- B
+-- url
+-- title
+-- body
+-- header
+-- anchor
+
+- K1
+
+- PR_Lambda
+- PR_Lambda_prime
+- PR_Lambda_prime2
+
+
+----------------------------------------------------------------
+Small Window - Cosine
+
+- Boost
+
+- Function
