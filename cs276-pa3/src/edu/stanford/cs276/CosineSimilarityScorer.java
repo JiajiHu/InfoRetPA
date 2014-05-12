@@ -7,7 +7,6 @@ public class CosineSimilarityScorer extends AScorer {
     super(idfs);
   }
 
-  // /////////////weights///////////////////////////
   private final double URL_WEIGHT = 1;
   private final double TITLE_WEIGHT = 1;
   private final double BODY_WEIGHT = 1;
@@ -21,21 +20,20 @@ public class CosineSimilarityScorer extends AScorer {
   public double getNetScore(Map<Field, Map<String, Double>> tfs, Query q,
       Map<String, Double> tfQuery, Document d) {
     double score = 0.0;
-    int count = 0;
-    for (Field field : Field.values()) {
-      double weight = WEIGHTS[count];
+    Field[] fields = Field.values();
+    for (int i = 0; i < fields.length; i++) {
+      Field field = fields[i];
+      double weight = WEIGHTS[i];
       double temp = 0.0;
-      Map<String, Double> tfs_field = tfs.get(field);
       for (String word : tfQuery.keySet()) {
-        double idf_val;
+        double idf_score;
         if (idfs.containsKey(word))
-          idf_val = idfs.get(word);
+          idf_score = idfs.get(word);
         else
-          idf_val = idfs.get("unseen term");
-        temp += tfQuery.get(word) * tfs_field.get(word) * idf_val;
+          idf_score = idfs.get("unseen term");
+        temp += tfQuery.get(word) * tfs.get(field).get(word) * idf_score;
       }
       score += temp * weight;
-      count++;
     }
     return score;
   }
@@ -47,7 +45,7 @@ public class CosineSimilarityScorer extends AScorer {
     for (Field field : Field.values()) {
       Map<String, Double> map = tfs.get(field);
       for (String word : map.keySet()) {
-        map.put(word, map.get(word) / (norm));
+        map.put(word, map.get(word) / norm);
       }
     }
   }
