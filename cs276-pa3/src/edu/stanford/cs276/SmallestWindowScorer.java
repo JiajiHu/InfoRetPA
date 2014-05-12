@@ -10,18 +10,18 @@ import java.util.Map;
 import edu.stanford.cs276.util.Pair;
 
 //doesn't necessarily have to use task 2 (could use task 1, in which case, you'd probably like to extend CosineSimilarityScorer instead)
-//public class SmallestWindowScorer extends BM25Scorer {
-public class SmallestWindowScorer extends CosineSimilarityScorer {
+public class SmallestWindowScorer extends BM25Scorer {
+  // public class SmallestWindowScorer extends CosineSimilarityScorer {
 
   // ///smallest window specific hyperparameters////////
-  private final double B = 5;
-  private final double BOOST_MOD = -1;
+  private final double B = 1.1;
+  private final double BOOST_MOD = 1;
   private final boolean subLinear = false;
 
   public SmallestWindowScorer(Map<String, Double> idfs,
       Map<Query, Map<String, Document>> queryDict) {
-    // super(idfs, queryDict);
-    super(idfs);
+    super(idfs, queryDict);
+    // super(idfs);
     handleSmallestWindow();
   }
 
@@ -155,7 +155,8 @@ public class SmallestWindowScorer extends CosineSimilarityScorer {
       return score;
     // TODO: IDEA: normalize also with body_length?
     // TODO: Try other method using window size
-    return score * Math.pow(B, (q.queryWords.size()) / window);
+    // return score * Math.pow(B, (q.queryWords.size()) / window);
+    return score* ((B - 1) * Math.exp(q.queryWords.size() - window) + 1);
   }
 
   public static String join(String[] list, String delim) {
