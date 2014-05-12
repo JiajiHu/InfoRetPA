@@ -43,11 +43,9 @@ public class Rank {
       Collections.sort(urlAndScores, new Comparator<Pair<String, Double>>() {
         @Override
         public int compare(Pair<String, Double> o1, Pair<String, Double> o2) {
-          /****************************************/
           if (o1.getSecond() < o2.getSecond())
             return 1;
           return -1;
-          /****************************************/
         }
       });
 
@@ -116,12 +114,9 @@ public class Rank {
   public static void main(String[] args) throws IOException {
 
     Map<String, Double> idfs = null;
-
-    /*********************************************/
     String dataDir = "data/corpus";
     String idfFile = "idfFile";
     idfs = LoadHandler.buildDFs(dataDir, idfFile);
-    /*********************************************/
 
     if (args.length < 2) {
       System.err

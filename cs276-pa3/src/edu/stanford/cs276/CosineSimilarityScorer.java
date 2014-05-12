@@ -8,26 +8,25 @@ public class CosineSimilarityScorer extends AScorer {
   }
 
   // /////////////weights///////////////////////////
-  private final double URL_WEIGHT = 5;
-  private final double TITLE_WEIGHT = 5;
+  private final double URL_WEIGHT = 1;
+  private final double TITLE_WEIGHT = 1;
   private final double BODY_WEIGHT = 1;
   private final double HEADER_WEIGHT = 1;
   private final double ANCHOR_WEIGHT = 1;
   private final double[] WEIGHTS = { URL_WEIGHT, TITLE_WEIGHT, BODY_WEIGHT,
       HEADER_WEIGHT, ANCHOR_WEIGHT };
-  private final double SMOOTHING_BODY_LENGTH = 1000;
+  private final double SMOOTHING_BODY_LENGTH = 500;
   private final boolean subLinear = false;
 
   public double getNetScore(Map<Field, Map<String, Double>> tfs, Query q,
       Map<String, Double> tfQuery, Document d) {
-    /******************************************/
     double score = 0.0;
     int count = 0;
     for (Field field : Field.values()) {
       double weight = WEIGHTS[count];
       double temp = 0.0;
       Map<String, Double> tfs_field = tfs.get(field);
-      for (String word : q.queryWords) {
+      for (String word : tfQuery.keySet()) {
         double idf_val;
         if (idfs.containsKey(word))
           idf_val = idfs.get(word);
@@ -39,12 +38,10 @@ public class CosineSimilarityScorer extends AScorer {
       count++;
     }
     return score;
-    /******************************************/
   }
 
   public void normalizeTFs(Map<Field, Map<String, Double>> tfs, Document d,
       Query q) {
-    /******************************************/
     double bodyLen = d.body_length;
     double norm = bodyLen + SMOOTHING_BODY_LENGTH; // normalize factor
     for (Field field : Field.values()) {
@@ -53,7 +50,6 @@ public class CosineSimilarityScorer extends AScorer {
         map.put(word, map.get(word) / (norm));
       }
     }
-    /******************************************/
   }
 
   @Override

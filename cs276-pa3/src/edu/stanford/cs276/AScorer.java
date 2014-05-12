@@ -18,8 +18,6 @@ public abstract class AScorer {
   // handle the query vector
   public Map<String, Double> getQueryFreqs(Query q, boolean subLinear) {
     Map<String, Double> tfQuery = new HashMap<String, Double>();
-
-    /******************************************/
     for (String word : q.queryWords) {
       if (tfQuery.containsKey(word)) {
         tfQuery.put(word, tfQuery.get(word) + 1.0);
@@ -32,12 +30,10 @@ public abstract class AScorer {
         tfQuery.put(word, 1.0 + Math.log(tfQuery.get(word)));
       }
     }
-    /******************************************/
     return tfQuery;
   }
 
   // //////////////////Initialization/Parsing Methods/////////////////////
-  /******************************************/
   public Map<String, Double> parseURL(String url) {
     Map<String, Double> u_tf = new HashMap<String, Double>();
     if (url == null)
@@ -107,8 +103,6 @@ public abstract class AScorer {
     return b_tf;
   }
 
-  /******************************************/
-
   /*
    * / Creates the various kinds of term frequences (url, title, body, header,
    * and anchor) You can override this if you'd like, but it's likely that your
@@ -120,7 +114,6 @@ public abstract class AScorer {
     Map<Field, Map<String, Double>> tfs = new HashMap<Field, Map<String, Double>>();
     Map<Field, Map<String, Double>> q_tfs = new HashMap<Field, Map<String, Double>>();
 
-    /******************************************/
     tfs.put(Field.URL, parseURL(d.url));
     tfs.put(Field.TITLE, parseTitle(d.title));
     tfs.put(Field.HEADER, parseHeader(d.headers));
@@ -146,6 +139,5 @@ public abstract class AScorer {
       }
     }
     return q_tfs;
-    /******************************************/
   }
 }
