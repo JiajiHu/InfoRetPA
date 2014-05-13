@@ -34,12 +34,14 @@ public abstract class AScorer {
   }
 
   // //////////////////Initialization/Parsing Methods/////////////////////
+
   public Map<String, Double> parseURL(String url) {
     Map<String, Double> u_tf = new HashMap<String, Double>();
     if (url == null)
       return u_tf;
     String[] tokens = url.trim().split("\\W+");
-    for (String token : tokens) {
+    for (int i = 1; i < tokens.length; i++) {
+      String token = tokens[i];
       if (u_tf.containsKey(token))
         u_tf.put(token, u_tf.get(token) + 1.0);
       else

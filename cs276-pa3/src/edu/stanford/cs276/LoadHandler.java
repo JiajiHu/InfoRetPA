@@ -118,7 +118,6 @@ public class LoadHandler {
     // counts number of documents in which each term appears
     Map<String, Double> termDocCount = new HashMap<String, Double>();
 
-    /*********************************************/
     for (File block : dirlist) {
       File blockDir = new File(root, block.getName());
       File[] filelist = blockDir.listFiles(); // file list in each block
@@ -143,16 +142,13 @@ public class LoadHandler {
       }
     }
     // System.out.println(totalDocCount);
-    /*********************************************/
-
+ 
     // make idf
     for (String term : termDocCount.keySet()) {
-      /*********************************************/
       termDocCount.put(term,
           Math.log((totalDocCount + 1) / (termDocCount.get(term) + 1.0)));
     }
     termDocCount.put("unseen term", Math.log((totalDocCount + 1.0)));
-    /*********************************************/
 
     // saves to file
     try {

@@ -59,7 +59,6 @@ public class BM25Scorer extends AScorer {
     for (Field field : Field.values()) {
       count.put(field, 0.0);
       sum.put(field, 0.0);
-      avgLengths.put(field, 0.0);
     }
 
     // loop through queries to populate lengths, avgLengths, pagerankScores
@@ -101,29 +100,29 @@ public class BM25Scorer extends AScorer {
           fieldLen.put(Field.HEADER, 0.0);
         }
 
-        // // 4: anchor
-        // if (doc.anchors != null) {
-        // temp = parseAnchor(doc.anchors);
-        // len = getSum(temp.values());
-        // fieldLen.put(Field.ANCHOR, len);
-        // sum.put(Field.ANCHOR, sum.get(Field.ANCHOR) + len);
-        // count.put(Field.ANCHOR,
-        // count.get(Field.ANCHOR) + getISum(doc.anchors.values()));
-        // } else {
-        // fieldLen.put(Field.ANCHOR, 0.0);
-        // }
+         // 4: anchor
+         if (doc.anchors != null) {
+         temp = parseAnchor(doc.anchors);
+         len = getSum(temp.values());
+         fieldLen.put(Field.ANCHOR, len);
+         sum.put(Field.ANCHOR, sum.get(Field.ANCHOR) + len);
+         count.put(Field.ANCHOR,
+         count.get(Field.ANCHOR) + getISum(doc.anchors.values()));
+         } else {
+         fieldLen.put(Field.ANCHOR, 0.0);
+         }
 
-        // 4: anchor
-        if (doc.anchors != null) {
-          for (String anchor : doc.anchors.keySet()) {
-            len = (double) anchor.split("\\s+").length;
-            sum.put(Field.ANCHOR, sum.get(Field.ANCHOR) + len);
-            count.put(Field.ANCHOR, count.get(Field.ANCHOR) + 1.0);
-            fieldLen.put(Field.ANCHOR, len);
-          }
-        } else {
-          fieldLen.put(Field.ANCHOR, 0.0);
-        }
+//        // 4: anchor
+//        if (doc.anchors != null) {
+//          for (String anchor : doc.anchors.keySet()) {
+//            len = (double) anchor.split("\\s+").length;
+//            sum.put(Field.ANCHOR, sum.get(Field.ANCHOR) + len);
+//            count.put(Field.ANCHOR, count.get(Field.ANCHOR) + 1.0);
+//            fieldLen.put(Field.ANCHOR, len);
+//          }
+//        } else {
+//          fieldLen.put(Field.ANCHOR, 0.0);
+//        }
 
         lengths.put(doc, fieldLen);
       }
@@ -132,6 +131,7 @@ public class BM25Scorer extends AScorer {
     // calculate average length
     for (Field field : Field.values()) {
       avgLengths.put(field, sum.get(field) / count.get(field));
+//      System.out.println(field.name()+" average size: "+sum.get(field) / count.get(field));
     }
   }
 

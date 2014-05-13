@@ -7,11 +7,66 @@
 \date{}
 \maketitle
 
+\section{Task 1: Cosine Similarity}
+NOTE: discuss ``linear vs sublinear" for term frequency -- document and query.
+
+NOTE: give values for weights and discuss intuition. Format: ``task1\_W\_url", etc.
+
+What was the reasoning behind giving the weights to the url, title,
+body, header and anchor fields for the three tasks? Were there any
+particular properties about the documents that allowed a higher weight
+to be given to one field as opposed to another?
+
+
+
+\section{Task 2: BM25F}
+NOTE: give values for weights and discuss intuition.
+
+What was the reasoning behind giving the weights to the url, title,
+body, header and anchor fields for the three tasks? Were there any
+particular properties about the documents that allowed a higher weight
+to be given to one field as opposed to another?
+
+In BM25F, in addition to the weights given to the fields, there are
+8 other parameters, Burl;Btitle;Bheader;Bbody;Banchor, lambda; lambda\_prime and K1.
+How do these parameters affect the ranking function?
+
+In BM25F, why did you select a particular Vj function?
+
+\section{Task 3: Smallest Window}
+NOTE: give values for weights and discuss intuition.
+What was the reasoning behind giving the weights to the url, title,
+body, header and anchor fields for the three tasks? Were there any
+particular properties about the documents that allowed a higher weight
+to be given to one field as opposed to another?
+
+For a function that includes the smallest window as one component,
+how does varying B and the boost function change the performance
+of the ranking algorithm?
+
+\section{Task 4: Extra Credit}
+
+\section{Analysis}
+NOTE: compare ranking functions
+
+What was the reasoning behind giving the weights to the url, title,
+body, header and anchor fields for the three tasks? Were there any
+particular properties about the documents that allowed a higher weight
+to be given to one eld as opposed to another?
+
+What other metrics, not used in this assignment, could be used to
+get a better scoring function from the document? The metrics could
+either be static (query-independent, e.g. document length) or dynamic
+(query-dependent, e.g. smallest window).
+
 \section{ideas}
 \begin{enumerate}
 \item 
 Tuning weights of fields: Increase one weight at a time, monitor change in performance.
 \item
+NOTE: report stats on both training and dev data!
+\item 
+experiment with stemming? experiment with other smoothing strategies?(cosine body length).
 \end{enumerate}
 
 \end{document}
