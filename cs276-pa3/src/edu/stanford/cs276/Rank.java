@@ -45,6 +45,8 @@ public class Rank {
         public int compare(Pair<String, Double> o1, Pair<String, Double> o2) {
           if (o1.getSecond() < o2.getSecond())
             return 1;
+          else if (o1.getSecond() > o2.getSecond())
+            return -1;
           return -1;
         }
       });

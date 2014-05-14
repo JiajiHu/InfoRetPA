@@ -39,7 +39,7 @@ public abstract class AScorer {
     Map<String, Double> u_tf = new HashMap<String, Double>();
     if (url == null)
       return u_tf;
-    String[] tokens = url.trim().split("\\W+");
+    String[] tokens = url.trim().split("[^a-z0-9]");
     for (int i = 1; i < tokens.length; i++) {
       String token = tokens[i];
       if (u_tf.containsKey(token))

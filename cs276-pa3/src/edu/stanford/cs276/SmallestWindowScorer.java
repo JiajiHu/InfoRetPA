@@ -14,9 +14,10 @@ public class SmallestWindowScorer extends BM25Scorer {
   // public class SmallestWindowScorer extends CosineSimilarityScorer {
 
   // ///smallest window specific hyperparameters////////
-  private final double B = 1.1;
+  private final double B = 1.12;
   private final double BOOST_MOD = 1;
-  private final boolean subLinear = false;
+  private final double lambda = 0.01;
+  private final boolean subLinear = true;
 
   public SmallestWindowScorer(Map<String, Double> idfs,
       Map<Query, Map<String, Document>> queryDict) {
@@ -26,13 +27,10 @@ public class SmallestWindowScorer extends BM25Scorer {
   }
 
   public void handleSmallestWindow() {
-    /*
-     * @//TODO : Your code here
-     */
   }
 
   public double checkWindow(Query q, String docstr, double curSmallestWindow) {
-    String[] str = docstr.split("\\s+");
+    String[] str = docstr.split("[^a-z0-9]");
     Map<String, Double> target = getQueryFreqs(q, false);
     Map<String, Double> current = new HashMap<String, Double>();
     double window = curSmallestWindow;
@@ -135,7 +133,7 @@ public class SmallestWindowScorer extends BM25Scorer {
 
     double window = -1.0;
     if (d.url != null)
-      window = checkWindow(q, join(d.url.split("\\W+"), " "), window);
+      window = checkWindow(q, join(d.url.split("[^a-z0-9]"), " "), window);
     if (d.title != null)
       window = checkWindow(q, d.title, window);
     if (d.headers != null)
@@ -154,9 +152,10 @@ public class SmallestWindowScorer extends BM25Scorer {
     if (window == -1)
       return score;
     // TODO: IDEA: normalize also with body_length?
-    // TODO: Try other method using window size
-    // return score * Math.pow(B, (q.queryWords.size()) / window);
-    return score* ((B - 1) * Math.exp(q.queryWords.size() - window) + 1);
+//    return score;
+//    return score * Math.pow(B, (double)(q.queryWords.size()) / window);
+//    return score * Math.pow(B, Math.exp(q.queryWords.size() - window)) + lambda;
+     return score* ((B - 1) * Math.exp(q.queryWords.size() - window) + 1);
   }
 
   public static String join(String[] list, String delim) {

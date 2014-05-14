@@ -11,32 +11,36 @@ public class BM25Scorer extends AScorer {
   Map<Document, Double> pagerankScores; // doc->pagerank
 
   // weights
-  private final double URL_WEIGHT = 2.6;
-  private final double TITLE_WEIGHT = 4.75;
+  private final double URL_WEIGHT = 3.3;// 2.6, 3.3
+  private final double TITLE_WEIGHT = 5.2;// 5.2
   private final double BODY_WEIGHT = 0.9;
-  private final double HEADER_WEIGHT = 1.55;
-  private final double ANCHOR_WEIGHT = 0.4;
+  private final double HEADER_WEIGHT = 2.85;// sub: 2.85
+  private final double ANCHOR_WEIGHT = 3.45;// linear: 0.4 or 1.35/ sub:3.45
   private final double[] WEIGHTS = { URL_WEIGHT, TITLE_WEIGHT, BODY_WEIGHT,
       HEADER_WEIGHT, ANCHOR_WEIGHT };
 
   // bm25 specific weights
   // NOTE: high impact: B_BODY
-  private final double B_URL = 0.1;
-  private final double B_TITLE = 0.4;
-  private final double B_HEADER = 0.5;
-  private final double B_BODY = 0.6;
-  private final double B_ANCHOR = 0.5;
+  private final double B_URL = 0;
+  private final double B_TITLE = 0.2;// 0.2
+  private final double B_BODY = 0.8;// 0.8
+  private final double B_HEADER = 0.5;// 0.1, 0.5, 0.8
+  private final double B_ANCHOR = 0;
   private final double[] B_WEIGHTS = { B_URL, B_TITLE, B_BODY, B_HEADER,
       B_ANCHOR };
 
-  private final double K1 = 4.9;
+  private final double K1 = 4.9;// 4.8, 5, 5.4
 
-  private final int V_NUM = 0;
-  private final double PR_Lambda = 1.8;
-  private final double PR_LambdaPrime = 1.5;
-  private final double PR_LambdaPrime2 = 1; // for the 3rd type of V function
+  private final int V_NUM = 2;
+  // VNUM = 0:
+  // 1.8 & 1.5 -> 88784
+  // VNUM = 2:
+  // 3.25, 0.05, 0.1 -> 88827
+  private final double PR_Lambda = 3.25;
+  private final double PR_LambdaPrime = 0.05;// 1.55, 1.8
+  private final double PR_LambdaPrime2 = 0.1; // for the 3rd type of V function
 
-  private final boolean subLinear = false;
+  private final boolean subLinear = true;
 
   // ////////////////////////////////////////
 
@@ -86,7 +90,7 @@ public class BM25Scorer extends AScorer {
         count.put(Field.TITLE, count.get(Field.TITLE) + 1.0);
 
         // 2: body
-        len = doc.body_length;
+        len = doc.body_length + 500;
         fieldLen.put(Field.BODY, len);
         sum.put(Field.BODY, sum.get(Field.BODY) + len);
         count.put(Field.BODY, count.get(Field.BODY) + 1.0);
@@ -206,14 +210,6 @@ public class BM25Scorer extends AScorer {
       res += d;
     }
     return res;
-  }
-
-  private double getISum(Collection<Integer> c) {
-    double res = 0.0;
-    for (int i : c) {
-      res += i;
-    }
-    return (double) res;
   }
 
 }
