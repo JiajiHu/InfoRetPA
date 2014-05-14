@@ -7,11 +7,11 @@ public class CosineSimilarityScorer extends AScorer {
     super(idfs);
   }
 
-  private final double URL_WEIGHT = 1;
-  private final double TITLE_WEIGHT = 1;
-  private final double BODY_WEIGHT = 1;
-  private final double HEADER_WEIGHT = 1;
-  private final double ANCHOR_WEIGHT = 1;
+  private final double URL_WEIGHT = 2.9;
+  private final double TITLE_WEIGHT = 3.5;
+  private final double BODY_WEIGHT = 0.8;
+  private final double HEADER_WEIGHT = 1.6;
+  private final double ANCHOR_WEIGHT = 0.5;
   private final double[] WEIGHTS = { URL_WEIGHT, TITLE_WEIGHT, BODY_WEIGHT,
       HEADER_WEIGHT, ANCHOR_WEIGHT };
   private final double SMOOTHING_BODY_LENGTH = 500;

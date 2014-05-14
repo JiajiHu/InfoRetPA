@@ -11,27 +11,29 @@ public class BM25Scorer extends AScorer {
   Map<Document, Double> pagerankScores; // doc->pagerank
 
   // weights
-  private final double URL_WEIGHT = 1;
-  private final double TITLE_WEIGHT = 1;
-  private final double BODY_WEIGHT = 1;
-  private final double HEADER_WEIGHT = 1;
-  private final double ANCHOR_WEIGHT = 1;
+  private final double URL_WEIGHT = 2.6;
+  private final double TITLE_WEIGHT = 4.75;
+  private final double BODY_WEIGHT = 0.9;
+  private final double HEADER_WEIGHT = 1.55;
+  private final double ANCHOR_WEIGHT = 0.4;
   private final double[] WEIGHTS = { URL_WEIGHT, TITLE_WEIGHT, BODY_WEIGHT,
       HEADER_WEIGHT, ANCHOR_WEIGHT };
 
   // bm25 specific weights
-  private final double B_URL = 1;
-  private final double B_TITLE = 1;
-  private final double B_HEADER = 1;
-  private final double B_BODY = 1;
-  private final double B_ANCHOR = 1;
+  // NOTE: high impact: B_BODY
+  private final double B_URL = 0.1;
+  private final double B_TITLE = 0.4;
+  private final double B_HEADER = 0.5;
+  private final double B_BODY = 0.6;
+  private final double B_ANCHOR = 0.5;
   private final double[] B_WEIGHTS = { B_URL, B_TITLE, B_BODY, B_HEADER,
       B_ANCHOR };
 
-  private final double K1 = 1;
+  private final double K1 = 4.9;
+
   private final int V_NUM = 0;
-  private final double PR_Lambda = 1;
-  private final double PR_LambdaPrime = 1;
+  private final double PR_Lambda = 1.8;
+  private final double PR_LambdaPrime = 1.5;
   private final double PR_LambdaPrime2 = 1; // for the 3rd type of V function
 
   private final boolean subLinear = false;
@@ -100,29 +102,28 @@ public class BM25Scorer extends AScorer {
           fieldLen.put(Field.HEADER, 0.0);
         }
 
-         // 4: anchor
-         if (doc.anchors != null) {
-         temp = parseAnchor(doc.anchors);
-         len = getSum(temp.values());
-         fieldLen.put(Field.ANCHOR, len);
-         sum.put(Field.ANCHOR, sum.get(Field.ANCHOR) + len);
-         count.put(Field.ANCHOR,
-         count.get(Field.ANCHOR) + getISum(doc.anchors.values()));
-         } else {
-         fieldLen.put(Field.ANCHOR, 0.0);
-         }
+        // 4: anchor
+        if (doc.anchors != null) {
+          temp = parseAnchor(doc.anchors);
+          len = getSum(temp.values());
+          fieldLen.put(Field.ANCHOR, len);
+          sum.put(Field.ANCHOR, sum.get(Field.ANCHOR) + len);
+          count.put(Field.ANCHOR, count.get(Field.ANCHOR) + 1.0);
+        } else {
+          fieldLen.put(Field.ANCHOR, 0.0);
+        }
 
-//        // 4: anchor
-//        if (doc.anchors != null) {
-//          for (String anchor : doc.anchors.keySet()) {
-//            len = (double) anchor.split("\\s+").length;
-//            sum.put(Field.ANCHOR, sum.get(Field.ANCHOR) + len);
-//            count.put(Field.ANCHOR, count.get(Field.ANCHOR) + 1.0);
-//            fieldLen.put(Field.ANCHOR, len);
-//          }
-//        } else {
-//          fieldLen.put(Field.ANCHOR, 0.0);
-//        }
+        // // 4: anchor
+        // if (doc.anchors != null) {
+        // for (String anchor : doc.anchors.keySet()) {
+        // len = (double) anchor.split("\\s+").length;
+        // sum.put(Field.ANCHOR, sum.get(Field.ANCHOR) + len);
+        // count.put(Field.ANCHOR, count.get(Field.ANCHOR) + 1.0);
+        // fieldLen.put(Field.ANCHOR, len);
+        // }
+        // } else {
+        // fieldLen.put(Field.ANCHOR, 0.0);
+        // }
 
         lengths.put(doc, fieldLen);
       }
@@ -131,7 +132,8 @@ public class BM25Scorer extends AScorer {
     // calculate average length
     for (Field field : Field.values()) {
       avgLengths.put(field, sum.get(field) / count.get(field));
-//      System.out.println(field.name()+" average size: "+sum.get(field) / count.get(field));
+      // System.out.println(field.name()+" average size: "+sum.get(field) /
+      // count.get(field));
     }
   }
 
