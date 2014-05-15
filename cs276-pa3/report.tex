@@ -8,6 +8,22 @@
 \maketitle
 
 \section{Task 1: Cosine Similarity}
+
+Our weights for task 1:
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+Parameter & value \\\hline
+task1\_W\_url & 2.9\\\hline
+task1\_W\_title & 3.5\\\hline
+task1\_W\_body & 0.8\\\hline
+task1\_W\_header & 1.6\\\hline
+task1\_W\_anchor & 0.5\\\hline
+body\_len\_normalization & 500\\\hline
+tf\_scaling & linear\\\hline
+\end{tabular}
+\end{table}
 NOTE: discuss ``linear vs sublinear" for term frequency -- document and query.
 
 NOTE: give values for weights and discuss intuition. Format: ``task1\_W\_url", etc.
@@ -20,6 +36,34 @@ to be given to one field as opposed to another?
 
 
 \section{Task 2: BM25F}
+Our parameters for task 2:
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+Parameter & value \\\hline
+task2\_W\_url & 3.3\\\hline
+task2\_W\_title & 5.2\\\hline
+task2\_W\_body & 0.9\\\hline
+task2\_W\_header & 2.85\\\hline
+task2\_W\_anchor & 3.45\\\hline
+task2\_B\_url & 0.0\\\hline
+task2\_B\_title & 0.2\\\hline
+task2\_B\_body & 0.8\\\hline
+task2\_B\_header & 0.5\\\hline
+task2\_B\_anchor & 0.0\\\hline
+tf\_scaling & sublinear\\\hline
+K1 & 4.9\\\hline
+$\lambda$ & 3.25\\\hline
+$\lambda'$ & 0.05\\\hline
+$\lambda''$ & 0.1\\\hline
+\end{tabular}
+\end{table}
+Where the function $V_j$ is as follows:
+\begin{equation*}
+V_j = \frac{1}{\lambda'+\exp({-f_j\lambda''})}
+\end{equation*}
+
 NOTE: give values for weights and discuss intuition.
 
 What was the reasoning behind giving the weights to the url, title,
@@ -34,6 +78,40 @@ How do these parameters affect the ranking function?
 In BM25F, why did you select a particular Vj function?
 
 \section{Task 3: Smallest Window}
+Our parameters for task 2:
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+Parameter & value \\\hline
+task2\_W\_url & 3.3\\\hline
+task2\_W\_title & 5.2\\\hline
+task2\_W\_body & 0.9\\\hline
+task2\_W\_header & 2.85\\\hline
+task2\_W\_anchor & 3.45\\\hline
+task2\_B\_url & 0.0\\\hline
+task2\_B\_title & 0.2\\\hline
+task2\_B\_body & 0.8\\\hline
+task2\_B\_header & 0.5\\\hline
+task2\_B\_anchor & 0.0\\\hline
+tf\_scaling & sublinear\\\hline
+K1 & 4.9\\\hline
+$\lambda$ & 3.25\\\hline
+$\lambda'$ & 0.05\\\hline
+$\lambda''$ & 0.1\\\hline
+B & \\\hline
+
+\end{tabular}
+\end{table}
+Where the page rank function $V_j$ is as follows:
+\begin{equation*}
+V_j = \frac{1}{\lambda'+\exp({-f_j\lambda''})}
+\end{equation*}
+And smallest window boosting function is as follows:
+\begin{equation*}
+score = score \times [1+(B-1)\exp(query\_len-win\_size)]
+\end{equation*}
+
 NOTE: give values for weights and discuss intuition.
 What was the reasoning behind giving the weights to the url, title,
 body, header and anchor fields for the three tasks? Were there any

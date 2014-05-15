@@ -117,18 +117,6 @@ public class BM25Scorer extends AScorer {
           fieldLen.put(Field.ANCHOR, 0.0);
         }
 
-        // // 4: anchor
-        // if (doc.anchors != null) {
-        // for (String anchor : doc.anchors.keySet()) {
-        // len = (double) anchor.split("\\s+").length;
-        // sum.put(Field.ANCHOR, sum.get(Field.ANCHOR) + len);
-        // count.put(Field.ANCHOR, count.get(Field.ANCHOR) + 1.0);
-        // fieldLen.put(Field.ANCHOR, len);
-        // }
-        // } else {
-        // fieldLen.put(Field.ANCHOR, 0.0);
-        // }
-
         lengths.put(doc, fieldLen);
       }
     }
@@ -197,14 +185,14 @@ public class BM25Scorer extends AScorer {
   @Override
   public double getSimScore(Document d, Query q) {
 
-    Map<Field, Map<String, Double>> tfs = this.getDocTermFreqs(d, q, subLinear);
+    Map<Field, Map<String, Double>> tfs = super.getDocTermFreqs(d, q, subLinear);
     this.normalizeTFs(tfs, d, q);
     Map<String, Double> tfQuery = getQueryFreqs(q, subLinear);
 
     return getNetScore(tfs, q, tfQuery, d);
   }
 
-  private double getSum(Collection<Double> c) {
+  public double getSum(Collection<Double> c) {
     double res = 0.0;
     for (double d : c) {
       res += d;

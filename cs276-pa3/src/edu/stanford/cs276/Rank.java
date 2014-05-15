@@ -25,7 +25,7 @@ public class Rank {
       // build on top of that instead
       scorer = new SmallestWindowScorer(idfs, queryDict);
     else if (scoreType.equals("extra"))
-      scorer = new ExtraCreditScorer(idfs);
+      scorer = new ExtraCreditScorer(idfs, queryDict);
 
     // put completed rankings here
     Map<Query, List<String>> queryRankings = new HashMap<Query, List<String>>();
