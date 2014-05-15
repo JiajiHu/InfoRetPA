@@ -6,10 +6,10 @@ import java.util.Map;
 public class ExtraCreditScorer extends SmallestWindowScorer {
 
   private final double lambda = 0.05;// higher good for dev, bad for train
-  private final double lambda2 = 0;// only negative impact
-  private final double lambda3 = 0.0;
+  private final double lambda2 = 0.15;// higher good for train, bad for dev
+  private final double lambda3 = 0.0;// only negative impact
   private final double lambda4 = 0.0;
-
+  
   public ExtraCreditScorer(Map<String, Double> idfs,
       Map<Query, Map<String, Document>> queryDict) {
     super(idfs, queryDict);
@@ -24,10 +24,10 @@ public class ExtraCreditScorer extends SmallestWindowScorer {
     score = super.getSimScore(d, q);
     double fieldCount = getFieldCount(tfs);
     score += lambda * fieldCount;
+    score -= lambda2 * getUnseenQuery(tfs, tfQuery);
     double leastSeenFreq = getLeastSeenFreq(tfs, tfQuery);
-    score += lambda2 * Math.log(0.1+leastSeenFreq);
-    score += lambda3 * Math.log(d.body_length+300);
-    score -= lambda4 * getUnseenQuery(tfs, tfQuery);
+    score += lambda3 * Math.log(0.1+leastSeenFreq);
+    score += lambda4 * Math.log(d.body_length+300);
     return score;
   }
 
@@ -62,7 +62,17 @@ public class ExtraCreditScorer extends SmallestWindowScorer {
   public double getUnseenQuery(Map<Field, Map<String, Double>> tfs,
       Map<String, Double> qtf){
     double unseen = 0;
-    
+    for (String qword: qtf.keySet()){
+      boolean flag = false;
+      for (Field field: Field.values()){
+        if (tfs.get(field).get(qword) > 0){
+          flag = true;
+          break;
+        }
+      }
+      if (!flag)
+        unseen += 1;
+    }
     return unseen;
   }
 

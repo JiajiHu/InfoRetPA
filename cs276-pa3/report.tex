@@ -36,15 +36,13 @@ After we found the peak for one parameter, we could move on to the next paramete
 
 The advantage to such a method is that it is simple, effective and easy to understand. It was often the case that we were able to converge to a local maximum in a few dozen tries. The results were also quite good, especially for our BM25F scorer, which ended up getting huge improvements.
 
-Compare this to an exhaustive search over the parameter space --- even with just 10 possible values per field and 6 fields, we would end up with a million data points to compute, which would take months. We also considered some other interesting search algorithms such as beam search, but decided that hill-climbing was easier to utilize. (Beam search, in itself, has parameters that need tuning.)
-
-The drawback of hill climbing is that it may get stuck in local optima. We observed that since there is an ordering of which parameters get tuned first, the first ones tend to overfit the parameters that are yet to be tuned. When the time comes to tune the last parameters, little adjustment needs to be made, because the algorithm is already stuck at a local optimum. To combat this, we introduced some randomization of the ordering of parameters, and did multiple runs to find the best results.
+The drawback of hill climbing is that it may get stuck in local optima. We observed that since there is an ordering of which parameters get tuned, the first ones tend to overfit the parameters yet to be tuned. When the time comes to tune the last parameters, little adjustment needs to be made, because the algorithm is already stuck at a local optimum. To combat this, we used randomization and repetition.
 
 Finally, some discussion on the reasoning behind our final parameter weights for cosine similarity, and some attempts to explain the results:
 
 First, the choice to use linear or sublinear scaling for term frequencies is an important factor. Using sublinear scaling will greatly lower the impact of high frequency appearances of a query term in a field. If we look closely at the data, we realize that this would mostly affect the \texttt{body} and \texttt{anchor} fields. On a high level, this choice is a design choice of how much emphasis we want to put on the fact that a query term appears many times in the same field of a document. In practice, linear scaling gave better performance on the cosine similarity scorer, so that was our choice.
 
-Next, we discuss the weights for the five fields. Intuitively, higher weights should be given to fields that are good predictors of a document's relevance to a query. In practice, we realized that because we were not doing good normalization (but instead just dividing the same number for all the fields), we also needed to take into account the fact that some fields were more likely to gain higher counts of the query terms than others. The following is a list of the field weights and some explanation.
+Next, we discuss the weights for the five fields. Intuitively, higher weights should be given to fields that are good predictors of relevance. In practice, we realized that because we were not doing good normalization, we also needed to take into account the fact that some fields were more likely to gain higher counts of the query terms than others. The following is a list of the field weights and some explanation.
 \begin{enumerate}[(a)]
 \item \texttt{task1\_W\_url} : 3.1
 
@@ -106,6 +104,24 @@ Where the function $V_j$ is as follows:
 \begin{equation*}
 V_j = \frac{1}{\lambda'+\exp({-f_j\lambda''})}
 \end{equation*}
+Our approach for tuning parameters is the same as in task 1, with one big difference: In this task, we note that \texttt{W} and \texttt{B} are best tuned as a couple. 
+
+For task 2, we chose to use sublinear term frequency scaling, based on the results we got from parameter tuning. As for the \texttt{W} and \texttt{B} weights, we discuss them below:
+\begin{enumerate}[(a)]
+\item \texttt{task2\_W\_url}:3.3, \texttt{task2\_B\_url}:0.0
+
+\item \texttt{task2\_W\_title}:5.2, \texttt{task2\_B\_title}:0.2
+
+\item \texttt{task2\_W\_body}:0.9, \texttt{task2\_B\_body}:0.8
+
+\item \texttt{task2\_W\_header}:2.85, \texttt{task2\_B\_header}:0.5
+
+\item \texttt{task2\_W\_anchor}:3.45, \texttt{task2\_B\_anchor}:0.0
+
+\end{enumerate}
+
+Lastly, 
+
 
 NOTE: give values for weights and discuss intuition.
 
@@ -126,8 +142,8 @@ And our performance on the datasets:
 \begin{tabular}{|c|c|}
 \hline
 Dataset & NDCG/iNDCG score \\\hline
-training & \\\hline
-dev & \\\hline
+training & 0.8883\\\hline
+dev & 0.8689\\\hline
 \end{tabular}
 \end{table}
 \section*{Task 3: Smallest Window}
@@ -165,6 +181,20 @@ V_j = \frac{1}{\lambda'+\exp({-f_j\lambda''})}
 score = score \times [1+(B-1)\exp(query\_len-win\_size)]
 \end{equation*}
 
+\begin{enumerate}[(a)]
+\item \texttt{task2\_W\_url}:3.3, \texttt{task2\_B\_url}:0.0
+
+\item \texttt{task2\_W\_title}:5.2, \texttt{task2\_B\_title}:0.2
+
+\item \texttt{task2\_W\_body}:0.9, \texttt{task2\_B\_body}:0.8
+
+\item \texttt{task2\_W\_header}:2.85, \texttt{task2\_B\_header}:0.5
+
+\item \texttt{task2\_W\_anchor}:3.45, \texttt{task2\_B\_anchor}:0.0
+
+\end{enumerate}
+
+
 NOTE: give values for weights and discuss intuition.
 What was the reasoning behind giving the weights to the url, title,
 body, header and anchor fields for the three tasks? Were there any
@@ -181,12 +211,20 @@ Finally, our performance on the datasets:
 \begin{tabular}{|c|c|}
 \hline
 Dataset & NDCG/iNDCG score \\\hline
-training & \\\hline
-dev & \\\hline
+training & 0.8900\\\hline
+dev & 0.8695\\\hline
 \end{tabular}
 \end{table}
 
 \section*{Task 4: Extra Credit}
+For extra credit, we tried many ideas to add to the smallest window scorer.
+\begin{enumerate}[(1)]
+\item
+\item
+\item
+\item
+
+\end{enumerate}
 
 \section*{Summary Analysis}
 NOTE: compare ranking functions
