@@ -8,6 +8,7 @@ public class ExtraCreditScorer extends SmallestWindowScorer {
   private final double lambda = 0.05;// higher good for dev, bad for train
   private final double lambda2 = 0;// only negative impact
   private final double lambda3 = 0.0;
+  private final double lambda4 = 0.0;
 
   public ExtraCreditScorer(Map<String, Double> idfs,
       Map<Query, Map<String, Document>> queryDict) {
@@ -26,6 +27,7 @@ public class ExtraCreditScorer extends SmallestWindowScorer {
     double leastSeenFreq = getLeastSeenFreq(tfs, tfQuery);
     score += lambda2 * Math.log(0.1+leastSeenFreq);
     score += lambda3 * Math.log(d.body_length+300);
+    score -= lambda4 * getUnseenQuery(tfs, tfQuery);
     return score;
   }
 
@@ -55,6 +57,13 @@ public class ExtraCreditScorer extends SmallestWindowScorer {
         smallest = seen.get(qword) / total;
     }
     return smallest;
+  }
+  
+  public double getUnseenQuery(Map<Field, Map<String, Double>> tfs,
+      Map<String, Double> qtf){
+    double unseen = 0;
+    
+    return unseen;
   }
 
 }
