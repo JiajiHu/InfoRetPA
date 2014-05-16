@@ -185,7 +185,8 @@ public class BM25Scorer extends AScorer {
   @Override
   public double getSimScore(Document d, Query q) {
 
-    Map<Field, Map<String, Double>> tfs = super.getDocTermFreqs(d, q, subLinear);
+    Map<Field, Map<String, Double>> tfs = super
+        .getDocTermFreqs(d, q, subLinear);
     this.normalizeTFs(tfs, d, q);
     Map<String, Double> tfQuery = getQueryFreqs(q, subLinear);
 

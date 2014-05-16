@@ -10,7 +10,7 @@ public class CosineSimilarityScorer extends AScorer {
   private final double URL_WEIGHT = 3.1;
   private final double TITLE_WEIGHT = 5.0;
   private final double BODY_WEIGHT = 1.1;
-  private final double HEADER_WEIGHT = 1.6;//1.6
+  private final double HEADER_WEIGHT = 1.6;// 1.6
   private final double ANCHOR_WEIGHT = 0.5;
   private final double[] WEIGHTS = { URL_WEIGHT, TITLE_WEIGHT, BODY_WEIGHT,
       HEADER_WEIGHT, ANCHOR_WEIGHT };
@@ -52,7 +52,8 @@ public class CosineSimilarityScorer extends AScorer {
 
   @Override
   public double getSimScore(Document d, Query q) {
-    Map<Field, Map<String, Double>> tfs = super.getDocTermFreqs(d, q, subLinear);
+    Map<Field, Map<String, Double>> tfs = super
+        .getDocTermFreqs(d, q, subLinear);
     this.normalizeTFs(tfs, d, q);
     Map<String, Double> tfQuery = getQueryFreqs(q, subLinear);
     return getNetScore(tfs, q, tfQuery, d);

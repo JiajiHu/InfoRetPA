@@ -106,47 +106,39 @@ dev & 0.8462\\\hline
 %\end{equation*}
 Our approach for tuning is the same as in task 1, with one difference: In this task, we note that \texttt{W} and \texttt{B} are best tuned as a couple. This makes sense as \texttt{B} influences the field score and \texttt{W} decides its weight. 
 
-For task 2, we chose to use sublinear term frequency scaling, based on the results we got from parameter tuning. As for the parameter weights, they are discussed below:
+For task 2, the reasoning behind term frequency scaling is the same as task 1. However, in the end, we chose to use sublinear term frequency scaling, based on the results we got from parameter tuning. As for the parameter weights, they are discussed below:
 \begin{enumerate}[(a)]
-\item \texttt{task2\_W\_url}:3.3, \texttt{task2\_B\_url}:0.0
+\item \texttt{task2\_W\_url} : 3.3, \texttt{task2\_B\_url} : 0.0
 
-\item \texttt{task2\_W\_title}:5.2, \texttt{task2\_B\_title}:0.2
+Same as in task 1, the URL is a good feature. For length normalization, we ended up with no normalization (\texttt{B}=0), meaning we don't care about how long the url is. URL are generally similar in length, and different segments serve different purposes, so there being no need to normalize it for length makes sense.
+\item \texttt{task2\_W\_title} : 5.2, \texttt{task2\_B\_title} : 0.2
 
-\item \texttt{task2\_W\_body}:0.9, \texttt{task2\_B\_body}:0.8
+Our most heavily weighted feature is still the title. This goes on to show that a documents relevance indeed has much to do with the title. Length normalization for titles follows similar logic for the URL, and the weight is 0.2, so there is slight normalization.
+\item \texttt{task2\_W\_body} : 0.95, \texttt{task2\_B\_body} : 0.8
 
-\item \texttt{task2\_W\_header}:2.85, \texttt{task2\_B\_header}:0.5
+Analysis for the body weight is same as task 1. Now that we finally have length normalization by field, we utilize it well and give a \texttt{B} weight of 0.8.
+\item \texttt{task2\_W\_header} : 2.85, \texttt{task2\_B\_header} : 0.5
 
-\item \texttt{task2\_W\_anchor}:3.45, \texttt{task2\_B\_anchor}:0.0
+The header is given a medium weight, and there is some length normalization with \texttt{B} = 0.5. Header lengths vary quite a bit so this makes sense.
+\item \texttt{task2\_W\_anchor} : 3.45, \texttt{task2\_B\_anchor} : 0.0
 
+For the anchor field, using sublinear term frequency scaling (which made the vectors smaller in magnitude) positively affected the weight. Now, it can have a rather high weight, even with no length normalization.
 \item \texttt{K1} : 4.9
+
+\texttt{K1} was found by tuning the parameters. It determines the speed of the saturation.
 \item $V_j = \frac{1}{\lambda'+\exp({-f_j\lambda''})}$, \texttt{$\lambda$} : 3.25, \texttt{$\lambda'$} : 0.05, \texttt{$\lambda''$} : 0.1
 
+For the function $V_j$, we tried out all three suggestions and picked the best performing one. The logarithm function was a close second. Both functions look both quite similar for {\it pr} ranging from 1 to 9. The parameter $\lambda''$ greatly affects the shape of the function and is quite delicate. $\lambda$ and $\lambda'$ can have a range of values which all give decent performance.
 \end{enumerate}
 
-Lastly, 
-
-
-NOTE: give values for weights and discuss intuition.
-
-What was the reasoning behind giving the weights to the url, title,
-body, header and anchor fields for the three tasks? Were there any
-particular properties about the documents that allowed a higher weight
-to be given to one field as opposed to another?
-
-In BM25F, in addition to the weights given to the fields, there are
-8 other parameters, Burl;Btitle;Bheader;Bbody;Banchor, lambda; lambda\_prime and K1.
-How do these parameters affect the ranking function?
-
-In BM25F, why did you select a particular Vj function?
-
-And our performance on the datasets:
+Lastly, our performance on the datasets:
 \begin{table}[H]
 \centering
 \begin{tabular}{|c|c|}
 \hline
 Dataset & NDCG/iNDCG score \\\hline
-training & 0.8883\\\hline
-dev & 0.8689\\\hline
+training & 0.8872\\\hline
+dev & 0.8671\\\hline
 \end{tabular}
 \end{table}
 \section*{Task 3: Smallest Window}
@@ -178,19 +170,13 @@ $\lambda''$ & 0.1\\\hline
 B & 1.12\\\hline
 \end{tabular}
 \end{table}
-Where $V_j$ is still:
-\begin{equation*}
-V_j = \frac{1}{\lambda'+\exp({-f_j\lambda''})}
-\end{equation*}
-In the end, we opted for a function that decreases very rapidly with the increase in window size.
+Where $V_j$ is the same as in task 2.
+
+For the boosting function, we opted for a function that decreases very rapidly with the increase in window size in the end.
 \begin{equation*}
 score = score \times [1+(B-1)\exp(query\_len-win\_size)]
 \end{equation*}
-
-
-For a function that includes the smallest window as one component,
-how does varying B and the boost function change the performance
-of the ranking algorithm?
+For this function, we see that it gives a small boost for the case when the window size is the same as query length. After that, the boost diminishes very rapidly. Only giving a boost of 12\% may seen small intuitively, but if we increase that value, performance takes a hit. We also tried a reciprocal function, with similar results if \texttt{B} is small.
 
 Finally, our performance on the datasets:
 \begin{table}[H]
@@ -206,12 +192,22 @@ dev & 0.8695\\\hline
 \section*{Task 4: Extra Credit}
 For extra credit, we tried many ideas to add to the smallest window scorer.
 \begin{enumerate}[(a)]
-\item
-\item
-\item
-\item
+\item Number of fields where query term appears
 
+We attempt to reward a document for diversity of where query terms appear. For every field that contains a query term a static reward of $r$ is given. $r$ is set to 0.05.
+\item Number of query terms missing
+
+Similarly, we penalize the document for not containing a specific query term. For every term that does not appear anywhere in the document, we give a penalty of $p$. $p$ is set to 0.15.
+\item Unevenness in frequency of query terms
+
+We tried to expand the previous idea and suggest that all query terms should appear in the document as evenly as possible. Therefore, we calculate the percentage of each query term's occurrences in total occurrences, and penalize the document by the frequency that is furtherest from an even distribution.
+
+In practice, we did not see improvement after using this feature. Therefore we did not give it a weight in our final model.
+\item Body length
+
+An easy feature to try is the query-independent body length of the document. Using it did not give an improvement in performance, so we did not use it.
 \end{enumerate}
+Using features (a) and (b) gave a further improvement in scorer performance, as show below:
 \begin{table}[H]
 \centering
 \begin{tabular}{|c|c|}
@@ -221,14 +217,9 @@ training & 0.8908\\\hline
 dev & 0.8718\\\hline
 \end{tabular}
 \end{table}
-
 \section*{Summary Analysis}
-NOTE: compare ranking functions
+Comparing the ranking functions, our implementation of cosine similarity can not do length normalization by field. Also, it does not take the page rank into account. As a result, the performance of BM25F is considerably better. To improve on BM25, we added the feature of window length, which is a good feature to determine document relevance to a query. After that, we tried adding some other features, with some succeeding and some failing to improve performance. 
 
-What other metrics, not used in this assignment, could be used to
-get a better scoring function from the document? The metrics could
-either be static (query-independent, e.g. document length) or dynamic
-(query-dependent, e.g. smallest window).
-
-
+There are always other features that we can use to help with scoring. On one hand, we can work with what we have right now, using more features such as url length, number of anchors, etc, though it remains to be seen whether they are good features.
+On the other hand, we could alway gather more information from the document to use as features. Things such as the number of images, number of incoming/ outgoint links could be indicators of document quality, and similar to PageRank, may help with ranking the documents. However, as the number of features increase, the job of figuring out good weights will become much much harder, and hand-tuning weights may become quite impossible.
 \end{document}

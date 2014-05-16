@@ -15,8 +15,6 @@ public class SmallestWindowScorer extends BM25Scorer {
 
   // ///smallest window specific hyperparameters////////
   private final double B = 1.12;
-  private final double BOOST_MOD = 1;
-  private final double lambda = 0.01;
   private final boolean subLinear = true;
 
   public SmallestWindowScorer(Map<String, Double> idfs,
@@ -152,10 +150,11 @@ public class SmallestWindowScorer extends BM25Scorer {
     if (window == -1)
       return score;
     // TODO: IDEA: normalize also with body_length?
-//    return score;
-//    return score * Math.pow(B, (double)(q.queryWords.size()) / window);
-//    return score * Math.pow(B, Math.exp(q.queryWords.size() - window)) + lambda;
-     return score* ((B - 1) * Math.exp(q.queryWords.size() - window) + 1);
+    // return score;
+    // return score * Math.pow(B, (double)(q.queryWords.size()) / window);
+    // return score * Math.pow(B, Math.exp(q.queryWords.size() - window)) +
+    // lambda;
+    return score * ((B - 1) * Math.exp(q.queryWords.size() - window) + 1);
   }
 
   public static String join(String[] list, String delim) {
