@@ -8,21 +8,21 @@
 \maketitle
 
 \section*{Task 1: Cosine Similarity}
-Our parameters for task 1:
-\begin{table}[H]
-\centering
-\begin{tabular}{|c|c|}
-\hline
-Parameter & value \\\hline
-task1\_W\_url & 3.1\\\hline
-task1\_W\_title & 5.0\\\hline
-task1\_W\_body & 1.1\\\hline
-task1\_W\_header & 1.6\\\hline
-task1\_W\_anchor & 0.5\\\hline
-body\_len\_normalization & 500\\\hline
-tf\_scaling & linear\\\hline
-\end{tabular}
-\end{table}
+%Our parameters for task 1:
+%\begin{table}[H]
+%\centering
+%\begin{tabular}{|c|c|}
+%\hline
+%Parameter & value \\\hline
+%task1\_W\_url & 3.1\\\hline
+%task1\_W\_title & 5.0\\\hline
+%task1\_W\_body & 1.1\\\hline
+%task1\_W\_header & 1.6\\\hline
+%task1\_W\_anchor & 0.5\\\hline
+%body\_len\_normalization & 500\\\hline
+%tf\_scaling & linear\\\hline
+%\end{tabular}
+%\end{table}
 After extensive tuning, we figured out that tuning parameters for cosine similarity does rather little to help with performance. However, we used this task to develop our methodology for tuning parameters.
 
 First of all, we note that if we just tuned one parameter, with the others the same, there was often one peak value for that parameter, e.g. below:
@@ -40,7 +40,7 @@ The drawback of hill climbing is that it may get stuck in local optima. We obser
 
 Finally, some discussion on the reasoning behind our final parameter weights for cosine similarity, and some attempts to explain the results:
 
-First, the choice to use linear or sublinear scaling for term frequencies is an important factor. Using sublinear scaling will greatly lower the impact of high frequency appearances of a query term in a field. If we look closely at the data, we realize that this would mostly affect the \texttt{body} and \texttt{anchor} fields. On a high level, this choice is a design choice of how much emphasis we want to put on the fact that a query term appears many times in the same field of a document. In practice, linear scaling gave better performance on the cosine similarity scorer, so that was our choice.
+First, the choice to use linear or sublinear scaling for term frequencies: Using sublinear scaling will greatly lower the impact of high frequency appearances of a query term in a field. Note that this would mostly affect the \texttt{body} and \texttt{anchor} fields. On a high level, this is a design choice of how much emphasis we want to put on the fact that a query term appears many times in the same field. In practice, linear scaling gave better performance on the cosine similarity scorer, so that was our choice.
 
 Next, we discuss the weights for the five fields. Intuitively, higher weights should be given to fields that are good predictors of relevance. In practice, we realized that because we were not doing good normalization, we also needed to take into account the fact that some fields were more likely to gain higher counts of the query terms than others. The following is a list of the field weights and some explanation.
 \begin{enumerate}[(a)]
@@ -58,7 +58,7 @@ Note that the \texttt{body} field often contains a high number of occurrences of
 We note that there are other sets of high-performing parameters that have the weight for this field to be higher than 1.6. We concluded that the header field is not such a high-impact field as \texttt{title}, due to its content being not as indicative.
 \item \texttt{task1\_W\_anchor} : 0.5
 
-We were surprised to find the best weight to be so low. We attribute this to the fact that this field often has a high number of query term occurrences, so the weights need to be lower to normalize for that. Also, having a large number of anchors pointing to a page means the page is likely a homepage or hub (e.g. \texttt{www.stanford.edu}), which may be too general and therefore may not satisfy a specific information need.
+We were surprised to find such a low weight. It might be because the anchor field often has a high number of query term occurrences, so the weights need to be lower to normalize for that.
 \end{enumerate}
 
 Lastly, we discuss body length smoothing. This directly affects the score, as more smoothing would mean less harsh normalization for longer documents compared to the shorter ones. From our experiments, the best value was found to be 500.
@@ -75,38 +75,38 @@ dev & 0.8462\\\hline
 \end{table}
 
 \section*{Task 2: BM25F}
-Our parameters for task 2:
-\begin{table}[H]
-\centering
-\begin{tabular}{|c|c|c|}
-\hline
-Field & W param & B param\\\hline
-url & 3.3 & 0.0\\\hline
-title & 5.2 & 0.2\\\hline
-body & 0.9 & 0.8\\\hline
-header & 2.85 & 0.5 \\\hline
-anchor & 3.45 & 0.0\\\hline
-\end{tabular}
-\end{table}
-\begin{table}[H]
-\centering
-\begin{tabular}{|c|c|}
-\hline
-Parameter & value\\\hline
-tf\_scaling & sublinear\\\hline
-K1 & 4.9\\\hline
-$\lambda$ & 3.25\\\hline
-$\lambda'$ & 0.05\\\hline
-$\lambda''$ & 0.1\\\hline
-\end{tabular}
-\end{table}
-Where the function $V_j$ is as follows:
-\begin{equation*}
-V_j = \frac{1}{\lambda'+\exp({-f_j\lambda''})}
-\end{equation*}
-Our approach for tuning parameters is the same as in task 1, with one big difference: In this task, we note that \texttt{W} and \texttt{B} are best tuned as a couple. 
+%Our parameters for task 2:
+%\begin{table}[H]
+%\centering
+%\begin{tabular}{|c|c|c|}
+%\hline
+%Field & W param & B param\\\hline
+%url & 3.3 & 0.0\\\hline
+%title & 5.2 & 0.2\\\hline
+%body & 0.9 & 0.8\\\hline
+%header & 2.85 & 0.5 \\\hline
+%anchor & 3.45 & 0.0\\\hline
+%\end{tabular}
+%\end{table}
+%\begin{table}[H]
+%\centering
+%\begin{tabular}{|c|c|}
+%\hline
+%Parameter & value\\\hline
+%tf\_scaling & sublinear\\\hline
+%K1 & 4.9\\\hline
+%$\lambda$ & 3.25\\\hline
+%$\lambda'$ & 0.05\\\hline
+%$\lambda''$ & 0.1\\\hline
+%\end{tabular}
+%\end{table}
+%Where the function $V_j$ is as follows:
+%\begin{equation*}
+%V_j = \frac{1}{\lambda'+\exp({-f_j\lambda''})}
+%\end{equation*}
+Our approach for tuning is the same as in task 1, with one difference: In this task, we note that \texttt{W} and \texttt{B} are best tuned as a couple. This makes sense as \texttt{B} influences the field score and \texttt{W} decides its weight. 
 
-For task 2, we chose to use sublinear term frequency scaling, based on the results we got from parameter tuning. As for the \texttt{W} and \texttt{B} weights, we discuss them below:
+For task 2, we chose to use sublinear term frequency scaling, based on the results we got from parameter tuning. As for the parameter weights, they are discussed below:
 \begin{enumerate}[(a)]
 \item \texttt{task2\_W\_url}:3.3, \texttt{task2\_B\_url}:0.0
 
@@ -117,6 +117,9 @@ For task 2, we chose to use sublinear term frequency scaling, based on the resul
 \item \texttt{task2\_W\_header}:2.85, \texttt{task2\_B\_header}:0.5
 
 \item \texttt{task2\_W\_anchor}:3.45, \texttt{task2\_B\_anchor}:0.0
+
+\item \texttt{K1} : 4.9
+\item $V_j = \frac{1}{\lambda'+\exp({-f_j\lambda''})}$, \texttt{$\lambda$} : 3.25, \texttt{$\lambda'$} : 0.05, \texttt{$\lambda''$} : 0.1
 
 \end{enumerate}
 
@@ -147,7 +150,9 @@ dev & 0.8689\\\hline
 \end{tabular}
 \end{table}
 \section*{Task 3: Smallest Window}
-Our smallest window scorer is based on our BM25 scorer, and has the following weights:
+In this task, we add a boosting function onto the BM25F scorer. It turned out that the best set of parameters for BM25F and the best set for smallest window was very similar. This makes sense because we still want the BM25 scorer to do its best -- we are just adding a modification to its best effort score. 
+
+Therefore, we will not repeat our explanations for the weights that appeared in task 2. Instead, we will list them in the table below, and go on to focus on the boost function and the value of \texttt{B}.
 \begin{table}[H]
 \centering
 \begin{tabular}{|c|c|c|}
@@ -173,33 +178,15 @@ $\lambda''$ & 0.1\\\hline
 B & 1.12\\\hline
 \end{tabular}
 \end{table}
-Where $V_j$ and window boosting are as follows:
+Where $V_j$ is still:
 \begin{equation*}
 V_j = \frac{1}{\lambda'+\exp({-f_j\lambda''})}
 \end{equation*}
+In the end, we opted for a function that decreases very rapidly with the increase in window size.
 \begin{equation*}
 score = score \times [1+(B-1)\exp(query\_len-win\_size)]
 \end{equation*}
 
-\begin{enumerate}[(a)]
-\item \texttt{task2\_W\_url}:3.3, \texttt{task2\_B\_url}:0.0
-
-\item \texttt{task2\_W\_title}:5.2, \texttt{task2\_B\_title}:0.2
-
-\item \texttt{task2\_W\_body}:0.9, \texttt{task2\_B\_body}:0.8
-
-\item \texttt{task2\_W\_header}:2.85, \texttt{task2\_B\_header}:0.5
-
-\item \texttt{task2\_W\_anchor}:3.45, \texttt{task2\_B\_anchor}:0.0
-
-\end{enumerate}
-
-
-NOTE: give values for weights and discuss intuition.
-What was the reasoning behind giving the weights to the url, title,
-body, header and anchor fields for the three tasks? Were there any
-particular properties about the documents that allowed a higher weight
-to be given to one field as opposed to another?
 
 For a function that includes the smallest window as one component,
 how does varying B and the boost function change the performance
@@ -218,13 +205,22 @@ dev & 0.8695\\\hline
 
 \section*{Task 4: Extra Credit}
 For extra credit, we tried many ideas to add to the smallest window scorer.
-\begin{enumerate}[(1)]
+\begin{enumerate}[(a)]
 \item
 \item
 \item
 \item
 
 \end{enumerate}
+\begin{table}[H]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+Dataset & NDCG/iNDCG score \\\hline
+training & 0.8908\\\hline
+dev & 0.8718\\\hline
+\end{tabular}
+\end{table}
 
 \section*{Summary Analysis}
 NOTE: compare ranking functions
