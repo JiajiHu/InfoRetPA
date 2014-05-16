@@ -20,7 +20,6 @@ public class SmallestWindowScorer extends BM25Scorer {
   public SmallestWindowScorer(Map<String, Double> idfs,
       Map<Query, Map<String, Document>> queryDict) {
     super(idfs, queryDict);
-    // super(idfs);
     handleSmallestWindow();
   }
 
@@ -149,7 +148,6 @@ public class SmallestWindowScorer extends BM25Scorer {
 
     if (window == -1)
       return score;
-    // TODO: IDEA: normalize also with body_length?
     // return score;
     // return score * Math.pow(B, (double)(q.queryWords.size()) / window);
     // return score * Math.pow(B, Math.exp(q.queryWords.size() - window)) +
