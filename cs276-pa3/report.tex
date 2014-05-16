@@ -144,7 +144,7 @@ dev & 0.8689\\\hline
 \section*{Task 3: Smallest Window}
 In this task, we add a boosting function onto the BM25F scorer. It turned out that the best set of parameters for BM25F and the best set for smallest window was very similar. This makes sense because we still want the BM25 scorer to do its best -- we are just adding a modification to its best effort score. 
 
-Therefore, we will not repeat our explanations for the weights that appeared in task 2. Instead, we will list them in the table below, and go on to focus on the boost function and the value of \texttt{B}.
+Therefore, the analysis for the weights that appeared in task 2 are the same, so we will not be as detailed as in task 2. In summary, for weights, we had \texttt{task3\_W\_title} as highest, followed by \texttt{Anchor} and \texttt{URL}, which shows that these are good, indicative features. For length normalization, we have \texttt{task3\_B\_URL}, \texttt{Title} and \texttt{Anchor} with small normalization, which means we do not care about their length, and almost full length normalization for \texttt{Body}, which means we give a penalty to long documents.
 \begin{table}[H]
 \centering
 \begin{tabular}{|c|c|c|c|}
@@ -202,7 +202,7 @@ Similarly, we penalize the document for not containing a specific query term. Fo
 
 We tried to expand the previous idea and suggest that all query terms should appear in the document as evenly as possible. Therefore, we calculate the percentage of each query term's occurrences in total occurrences, and penalize the document by the frequency that is furtherest from an even distribution.
 
-In practice, we did not see improvement after using this feature. Therefore we did not give it a weight in our final model.
+In practice, this feature did not work well, so we did not give it a weight in our final system.
 \item Body length
 
 An easy feature to try is the query-independent body length of the document. Using it did not give an improvement in performance, so we did not use it.
@@ -220,6 +220,6 @@ dev & 0.8718\\\hline
 \section*{Summary Analysis}
 Comparing the ranking functions, our implementation of cosine similarity can not do length normalization by field. Also, it does not take the page rank into account. As a result, the performance of BM25F is considerably better. To improve on BM25, we added the feature of window length, which is a good feature to determine document relevance to a query. After that, we tried adding some other features, with some succeeding and some failing to improve performance. 
 
-There are always other features that we can use to help with scoring. On one hand, we can work with what we have right now, using more features such as url length, number of anchors, etc, though it remains to be seen whether they are good features.
-On the other hand, we could alway gather more information from the document to use as features. Things such as the number of images, number of incoming/ outgoint links could be indicators of document quality, and similar to PageRank, may help with ranking the documents. However, as the number of features increase, the job of figuring out good weights will become much much harder, and hand-tuning weights may become quite impossible.
+There are always other features that we can use to help with scoring. On one hand, we can work with what we have right now, using features such as url length, number of anchors, etc, though it remains to be seen whether they are good features.
+On the other hand, we could gather more information from the document to use as features, such as the number of images, number of incoming/ outgoint links. These could be indicators of document quality and may help with ranking the documents. 
 \end{document}
