@@ -19,6 +19,7 @@ public abstract class AScorer {
   public Map<String, Double> getQueryFreqs(Query q, boolean subLinear) {
     Map<String, Double> tfQuery = new HashMap<String, Double>();
     for (String word : q.queryWords) {
+      word = word.toLowerCase();
       if (tfQuery.containsKey(word)) {
         tfQuery.put(word, tfQuery.get(word) + 1.0);
       } else {
@@ -39,7 +40,7 @@ public abstract class AScorer {
     Map<String, Double> u_tf = new HashMap<String, Double>();
     if (url == null)
       return u_tf;
-    String[] tokens = url.trim().split("[^a-z0-9]");
+    String[] tokens = url.toLowerCase().trim().split("[^a-z0-9]");
     for (int i = 1; i < tokens.length; i++) {
       String token = tokens[i];
       if (u_tf.containsKey(token))
@@ -54,7 +55,7 @@ public abstract class AScorer {
     Map<String, Double> t_tf = new HashMap<String, Double>();
     if (title == null)
       return t_tf;
-    String[] tokens = title.trim().split("\\s+");
+    String[] tokens = title.toLowerCase().trim().split("\\s+");
     for (String token : tokens) {
       if (t_tf.containsKey(token))
         t_tf.put(token, t_tf.get(token) + 1.0);
@@ -69,7 +70,7 @@ public abstract class AScorer {
     if (header == null)
       return h_tf;
     for (String head : header) {
-      String[] tokens = head.trim().split("\\s+");
+      String[] tokens = head.toLowerCase().trim().split("\\s+");
       for (String token : tokens) {
         if (h_tf.containsKey(token))
           h_tf.put(token, h_tf.get(token) + 1.0);
@@ -85,7 +86,7 @@ public abstract class AScorer {
     if (anchor == null)
       return a_tf;
     for (String anchor_text : anchor.keySet()) {
-      for (String token : anchor_text.split("\\s+")) {
+      for (String token : anchor_text.toLowerCase().split("\\s+")) {
         if (a_tf.containsKey(token))
           a_tf.put(token, (double) (anchor.get(anchor_text) + a_tf.get(token)));
         else
