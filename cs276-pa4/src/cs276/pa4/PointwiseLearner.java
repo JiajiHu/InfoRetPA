@@ -16,7 +16,8 @@ import weka.classifiers.functions.LinearRegression;
 
 public class PointwiseLearner extends Learner {
 
-  private final boolean sublinear = false;
+  // NOTE: sublinear = true quite a bit better!
+  private final boolean sublinear = true;
 
   @Override
   public Instances extract_train_features(String train_data_file,

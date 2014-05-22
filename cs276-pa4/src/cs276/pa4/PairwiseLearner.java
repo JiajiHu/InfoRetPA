@@ -20,23 +20,16 @@ import weka.filters.unsupervised.attribute.Standardize;
 
 public class PairwiseLearner extends Learner {
   private LibSVM model;
-  private final boolean sublinear = false;
-  ArrayList<Attribute> attributes;
-  
+  // NOTE: sublinear = true quite a bit better!
+  private final boolean sublinear = true;
+
   public PairwiseLearner(boolean isLinearKernel) {
     try {
       model = new LibSVM();
     } catch (Exception e) {
       e.printStackTrace();
     }
-    attributes = new ArrayList<Attribute>();
-    attributes.add(new Attribute("url_w"));
-    attributes.add(new Attribute("title_w"));
-    attributes.add(new Attribute("body_w"));
-    attributes.add(new Attribute("header_w"));
-    attributes.add(new Attribute("anchor_w"));
-    attributes.add(new Attribute("pos_neg"));
-    
+
     if (isLinearKernel) {
       model.setKernelType(new SelectedTag(LibSVM.KERNELTYPE_LINEAR,
           LibSVM.TAGS_KERNELTYPE));
@@ -52,15 +45,7 @@ public class PairwiseLearner extends Learner {
 
     model.setCost(C);
     model.setGamma(gamma); // only matter for RBF kernel
-    
-    attributes = new ArrayList<Attribute>();
-    attributes.add(new Attribute("url_w"));
-    attributes.add(new Attribute("title_w"));
-    attributes.add(new Attribute("body_w"));
-    attributes.add(new Attribute("header_w"));
-    attributes.add(new Attribute("anchor_w"));
-    attributes.add(new Attribute("pos_neg"));
-    
+
     if (isLinearKernel) {
       model.setKernelType(new SelectedTag(LibSVM.KERNELTYPE_LINEAR,
           LibSVM.TAGS_KERNELTYPE));
@@ -70,6 +55,9 @@ public class PairwiseLearner extends Learner {
   @Override
   public Instances extract_train_features(String train_data_file,
       String train_rel_file, Map<String, Double> idfs) {
+    int count_pos = 0;
+    int count_neg = 0;
+    boolean pos = false;
     Instances dataset = null;
     Map<Query, List<Document>> trainData = new HashMap<Query, List<Document>>();
     Map<String, Map<String, Double>> relData = new HashMap<String, Map<String, Double>>();
@@ -81,6 +69,17 @@ public class PairwiseLearner extends Learner {
     }
     Map<String, Map<String, Integer>> map = new HashMap<String, Map<String, Integer>>();
     int index = 0;
+
+    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+    attributes.add(new Attribute("url_w"));
+    attributes.add(new Attribute("title_w"));
+    attributes.add(new Attribute("body_w"));
+    attributes.add(new Attribute("header_w"));
+    attributes.add(new Attribute("anchor_w"));
+    ArrayList<String> labels = new ArrayList<String>();
+    labels.add("0");
+    labels.add("1");
+    attributes.add(new Attribute("pos_neg", labels));
 
     /* Build attributes list */
     dataset = new Instances("pretrain_dataset", attributes, 0);
@@ -146,29 +145,39 @@ public class PairwiseLearner extends Learner {
           for (int k = 0; k < 5; k++)
             point[k] = docs.get(i).getFirst().get(k)
                 - docs.get(j).getFirst().get(k);
-          if (rel_i < rel_j)
-            point[5] = 0;
-          else
-            point[5] = 1;
+          if (rel_i < rel_j) {
+            if (pos) {
+              for (int k = 0; k < 5; k++)
+                point[k] = -point[k];
+              point[5] = 1;
+              count_pos++;
+            } else {
+              point[5] = 0;
+              count_neg++;
+            }
+          } else {
+            if (!pos) {
+              for (int k = 0; k < 5; k++)
+                point[k] = -point[k];
+              point[5] = 0;
+              count_neg++;
+            } else {
+              point[5] = 1;
+              count_pos++;
+            }
+          }
           Instance inst = new DenseInstance(1.0, point);
           trainset.add(inst);
+          pos = !pos;
         }
       }
     }
-    Instances newtrain = null;
-    NumericToNominal nTn = new NumericToNominal();
-    try {
-      nTn.setInputFormat(trainset);
-      int[] nom = new int[1];
-      nom[0] = 5;
-      nTn.setAttributeIndicesArray(nom);
-      newtrain = Filter.useFilter(trainset, nTn);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
     /* Set last attribute as target */
-    newtrain.setClassIndex(trainset.numAttributes() - 1);
-    return newtrain;
+    trainset.setClassIndex(trainset.numAttributes() - 1);
+    System.err.println("positive: " + count_pos);
+    System.err.println("negative: " + count_neg);
+
+    return trainset;
   }
 
   @Override
@@ -196,6 +205,17 @@ public class PairwiseLearner extends Learner {
       e.printStackTrace();
     }
 
+    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+    attributes.add(new Attribute("url_w"));
+    attributes.add(new Attribute("title_w"));
+    attributes.add(new Attribute("body_w"));
+    attributes.add(new Attribute("header_w"));
+    attributes.add(new Attribute("anchor_w"));
+    ArrayList<String> labels = new ArrayList<String>();
+    labels.add("0");
+    labels.add("1");
+    attributes.add(new Attribute("pos_neg", labels));
+
     /* Build attributes list */
     dataset = new Instances("test_dataset", attributes, 0);
     /* Add data */
@@ -220,7 +240,7 @@ public class PairwiseLearner extends Learner {
           }
           instance[i] = temp;
         }
-        instance[5] = 0.0;
+        instance[5] = 0;
         Instance inst = new DenseInstance(1.0, instance);
         dataset.add(inst);
         map.get(q.query).put(d.url, index);
@@ -235,7 +255,7 @@ public class PairwiseLearner extends Learner {
     } catch (Exception e) {
       e.printStackTrace();
     }
-
+    new_data.setClassIndex(new_data.numAttributes() - 1);
     testFeatures.features = new_data;
     testFeatures.index_map = map;
 
@@ -243,16 +263,12 @@ public class PairwiseLearner extends Learner {
   }
 
   @Override
-  public Map<String, List<String>> testing(TestFeatures tf, Classifier model) {
-    /*
-     * @TODO: Your code here
-     */
+  public Map<String, List<String>> testing(TestFeatures tf,
+      final Classifier model) {
     Map<String, List<String>> results = new HashMap<String, List<String>>();
     Instances test_dataset = tf.features;
     Map<String, Map<String, Integer>> map = tf.index_map;
 
-//    double[] weights = ((LibSVM) model).coefficients();
-//    System.err.println("NOTE:"+weights.length);
     for (String query : map.keySet()) {
       List<Pair<String, Instance>> urlAndInstances = new ArrayList<Pair<String, Instance>>();
       for (String url : map.get(query).keySet()) {
@@ -266,12 +282,12 @@ public class PairwiseLearner extends Learner {
             @Override
             public int compare(Pair<String, Instance> o1,
                 Pair<String, Instance> o2) {
-              double res = compareInstance(o1.getSecond(), o2.getSecond());
-              //TODO: might be backwards
+              double res = compareInstance(o1.getSecond(), o2.getSecond(),
+                  model);
               if (res == 0)
-                return -1;
-              else
                 return 1;
+              else
+                return -1;
             }
           });
 
@@ -285,35 +301,34 @@ public class PairwiseLearner extends Learner {
     return results;
   }
 
-  public double compareInstance(Instance first, Instance second) {
+  public double compareInstance(Instance first, Instance second,
+      Classifier model) {
     double[] attr = new double[first.numAttributes()];
     for (int i = 0; i < first.numAttributes(); i++) {
       attr[i] = first.value(i) - second.value(i);
     }
-    attr[5]=0;
+    attr[5] = 0;
+
+    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+    attributes.add(new Attribute("url_w"));
+    attributes.add(new Attribute("title_w"));
+    attributes.add(new Attribute("body_w"));
+    attributes.add(new Attribute("header_w"));
+    attributes.add(new Attribute("anchor_w"));
+    ArrayList<String> labels = new ArrayList<String>();
+    labels.add("0");
+    labels.add("1");
+    attributes.add(new Attribute("pos_neg", labels));
+
     Instances dataset = new Instances("test_one", attributes, 0);
     Instance inst = new DenseInstance(1.0, attr);
     dataset.add(inst);
-//    Instances newtest = null;
-//    NumericToNominal nTn = new NumericToNominal();
-//    try {
-//      nTn.setInputFormat(dataset);
-//      int[] nom = new int[1];
-//      nom[0] = 5;
-//      nTn.setAttributeIndicesArray(nom);
-//      newtest = Filter.useFilter(dataset, nTn);
-//    } catch (Exception e) {
-//      e.printStackTrace();
-//    }
-//    newtest.setClassIndex(newtest.numAttributes() - 1);
     dataset.setClassIndex(dataset.numAttributes() - 1);
-    
-    inst.setDataset(dataset);
-//    System.err.println(inst);
+
     try {
-      return (double) model.classifyInstance(inst);
+      return model.classifyInstance(dataset.get(0));
     } catch (Exception e) {
-//      e.printStackTrace();
+      e.printStackTrace();
     }
     return 0;
   }
