@@ -24,10 +24,10 @@ public class Learning2Rank {
  		if (task == 1) {
 			learner = new PointwiseLearner();
 		} else if (task == 2) {
-//		  boolean isLinearKernel = true;
-		  boolean isLinearKernel = false;
-		  double C = 2;
-		  double gamma = 0.2;
+		  boolean isLinearKernel = true;
+//		  boolean isLinearKernel = false;
+//		  double C = 2;
+//		  double gamma = 0.2;
       learner = new PairwiseLearner(isLinearKernel);
 //      learner = new PairwiseLearner(C,gamma,isLinearKernel);
 
