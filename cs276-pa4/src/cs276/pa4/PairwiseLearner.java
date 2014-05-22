@@ -15,7 +15,6 @@ import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.SelectedTag;
 import weka.filters.Filter;
-import weka.filters.unsupervised.attribute.NumericToNominal;
 import weka.filters.unsupervised.attribute.Standardize;
 
 public class PairwiseLearner extends Learner {
@@ -57,7 +56,7 @@ public class PairwiseLearner extends Learner {
       String train_rel_file, Map<String, Double> idfs) {
     int count_pos = 0;
     int count_neg = 0;
-    boolean pos = false;
+    boolean pos = true;
     Instances dataset = null;
     Map<Query, List<Document>> trainData = new HashMap<Query, List<Document>>();
     Map<String, Map<String, Double>> relData = new HashMap<String, Map<String, Double>>();
