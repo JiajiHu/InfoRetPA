@@ -25,15 +25,19 @@ public class PairwiseLearner extends Learner {
   private final boolean len_normalize = true;
   private final double nor_len = 500;
   private ArrayList<Attribute> attributes;
-
+  private boolean task3 = false;
+  
   public PairwiseLearner(boolean isLinearKernel) {
     try {
       model = new LibSVM();
     } catch (Exception e) {
       e.printStackTrace();
     }
-    
-    setAttributes();
+
+    if (task3)
+      setAttributesTask3();
+    else
+      setAttributes();
     
     if (isLinearKernel) {
       model.setKernelType(new SelectedTag(LibSVM.KERNELTYPE_LINEAR,
@@ -51,8 +55,11 @@ public class PairwiseLearner extends Learner {
     model.setCost(C);
     model.setGamma(gamma); // only matter for RBF kernel
 
-    setAttributes();
-    
+    if (task3)
+      setAttributesTask3();
+    else
+      setAttributes();
+
     if (isLinearKernel) {
       model.setKernelType(new SelectedTag(LibSVM.KERNELTYPE_LINEAR,
           LibSVM.TAGS_KERNELTYPE));
@@ -82,7 +89,11 @@ public class PairwiseLearner extends Learner {
       map.put(q.query, new HashMap<String, Integer>());
       Map<String, Double> tfQuery = Util.getQueryFreqs(q, sublinear);
       for (Document d : trainData.get(q)) {
-        double[] instance = computeAttributes(d, q, idfs, tfQuery);
+        double[] instance;
+        if (task3)
+          instance = computeAttributesTask3(d, q, idfs, tfQuery);
+        else
+          instance = computeAttributes(d, q, idfs, tfQuery);
         Instance inst = new DenseInstance(1.0, instance);
         dataset.add(inst);
         map.get(q.query).put(d.url, index);
@@ -183,7 +194,11 @@ public class PairwiseLearner extends Learner {
       map.put(q.query, new HashMap<String, Integer>());
       Map<String, Double> tfQuery = Util.getQueryFreqs(q, sublinear);
       for (Document d : testData.get(q)) {
-        double[] instance = computeAttributes(d,q,idfs,tfQuery);
+        double[] instance;
+        if (task3)
+          instance = computeAttributesTask3(d, q, idfs, tfQuery);
+        else
+          instance = computeAttributes(d, q, idfs, tfQuery);
         Instance inst = new DenseInstance(1.0, instance);
         dataset.add(inst);
         map.get(q.query).put(d.url, index);
@@ -276,8 +291,21 @@ public class PairwiseLearner extends Learner {
     labels.add("0");
     labels.add("1");
     attributes.add(new Attribute("pos_neg", labels));
-
   }
+  
+  public void setAttributesTask3(){
+    attributes = new ArrayList<Attribute>();
+    attributes.add(new Attribute("url_w"));
+    attributes.add(new Attribute("title_w"));
+    attributes.add(new Attribute("body_w"));
+    attributes.add(new Attribute("header_w"));
+    attributes.add(new Attribute("anchor_w"));
+    ArrayList<String> labels = new ArrayList<String>();
+    labels.add("0");
+    labels.add("1");
+    attributes.add(new Attribute("pos_neg", labels));
+  }
+  
   
   public double[] computeAttributes(Document d, Query q, Map<String, Double> idfs,
       Map<String, Double> tfQuery) {
@@ -303,4 +331,29 @@ public class PairwiseLearner extends Learner {
     return weights;
   }
 
+  public double[] computeAttributesTask3(Document d, Query q, Map<String, Double> idfs,
+      Map<String, Double> tfQuery) {
+    double[] weights = new double[attributes.size()];
+    Map<Field, Map<String, Double>> tfs = Util.getDocTermFreqs(d, q, sublinear);
+    Field[] fields = Field.values();
+    for (int i = 0; i < fields.length; i++) {
+      double temp = 0;
+      Field field = fields[i];
+      for (String word : tfQuery.keySet()) {
+        double idf_score;
+        if (idfs.containsKey(word))
+          idf_score = idfs.get(word);
+        else
+          idf_score = idfs.get("unseen term");
+        temp += tfQuery.get(word) * tfs.get(field).get(word) * idf_score;
+      }
+      if (!len_normalize)
+        weights[i] = temp;
+      else
+        weights[i] = temp / (double) (d.body_length + nor_len);
+    }
+    return weights;
+  }
+
+  
 }
