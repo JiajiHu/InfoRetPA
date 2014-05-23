@@ -300,6 +300,12 @@ public class PairwiseLearner extends Learner {
     attributes.add(new Attribute("body_w"));
     attributes.add(new Attribute("header_w"));
     attributes.add(new Attribute("anchor_w"));
+//    attributes.add(new Attribute("bm25_url_w"));
+//    attributes.add(new Attribute("bm25_title_w"));
+//    attributes.add(new Attribute("bm25_body_w"));
+//    attributes.add(new Attribute("bm25_header_w"));
+//    attributes.add(new Attribute("bm25_anchor_w"));
+    
     ArrayList<String> labels = new ArrayList<String>();
     labels.add("0");
     labels.add("1");
@@ -352,6 +358,7 @@ public class PairwiseLearner extends Learner {
       else
         weights[i] = temp / (double) (d.body_length + nor_len);
     }
+    
     return weights;
   }
 
