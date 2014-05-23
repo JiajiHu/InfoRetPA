@@ -19,10 +19,12 @@ import weka.filters.unsupervised.attribute.Standardize;
 
 public class PairwiseLearner extends Learner {
   private LibSVM model;
-  // NOTE: sublinear = true quite a bit better!
+  // NOTE: sublinear a lot better!
   private final boolean sublinear = true;
+  // NOTE: len_normalize a lot better!
   private final boolean len_normalize = true;
   private final double nor_len = 500;
+  private ArrayList<Attribute> attributes;
 
   public PairwiseLearner(boolean isLinearKernel) {
     try {
@@ -30,6 +32,16 @@ public class PairwiseLearner extends Learner {
     } catch (Exception e) {
       e.printStackTrace();
     }
+    attributes = new ArrayList<Attribute>();
+    attributes.add(new Attribute("url_w"));
+    attributes.add(new Attribute("title_w"));
+    attributes.add(new Attribute("body_w"));
+    attributes.add(new Attribute("header_w"));
+    attributes.add(new Attribute("anchor_w"));
+    ArrayList<String> labels = new ArrayList<String>();
+    labels.add("0");
+    labels.add("1");
+    attributes.add(new Attribute("pos_neg", labels));
 
     if (isLinearKernel) {
       model.setKernelType(new SelectedTag(LibSVM.KERNELTYPE_LINEAR,
@@ -46,6 +58,17 @@ public class PairwiseLearner extends Learner {
 
     model.setCost(C);
     model.setGamma(gamma); // only matter for RBF kernel
+
+    attributes = new ArrayList<Attribute>();
+    attributes.add(new Attribute("url_w"));
+    attributes.add(new Attribute("title_w"));
+    attributes.add(new Attribute("body_w"));
+    attributes.add(new Attribute("header_w"));
+    attributes.add(new Attribute("anchor_w"));
+    ArrayList<String> labels = new ArrayList<String>();
+    labels.add("0");
+    labels.add("1");
+    attributes.add(new Attribute("pos_neg", labels));
 
     if (isLinearKernel) {
       model.setKernelType(new SelectedTag(LibSVM.KERNELTYPE_LINEAR,
@@ -69,17 +92,6 @@ public class PairwiseLearner extends Learner {
     Map<String, Map<String, Integer>> map = new HashMap<String, Map<String, Integer>>();
     int index = 0;
 
-    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
-    attributes.add(new Attribute("url_w"));
-    attributes.add(new Attribute("title_w"));
-    attributes.add(new Attribute("body_w"));
-    attributes.add(new Attribute("header_w"));
-    attributes.add(new Attribute("anchor_w"));
-    ArrayList<String> labels = new ArrayList<String>();
-    labels.add("0");
-    labels.add("1");
-    attributes.add(new Attribute("pos_neg", labels));
-
     /* Build attributes list */
     dataset = new Instances("pretrain_dataset", attributes, 0);
 
@@ -87,27 +99,7 @@ public class PairwiseLearner extends Learner {
       map.put(q.query, new HashMap<String, Integer>());
       Map<String, Double> tfQuery = Util.getQueryFreqs(q, sublinear);
       for (Document d : trainData.get(q)) {
-        double[] instance = new double[6];
-        Map<Field, Map<String, Double>> tfs = Util.getDocTermFreqs(d, q,
-            sublinear);
-        Field[] fields = Field.values();
-        for (int i = 0; i < fields.length; i++) {
-          double temp = 0;
-          Field field = fields[i];
-          for (String word : tfQuery.keySet()) {
-            double idf_score;
-            if (idfs.containsKey(word))
-              idf_score = idfs.get(word);
-            else
-              idf_score = idfs.get("unseen term");
-            temp += tfQuery.get(word) * tfs.get(field).get(word) * idf_score;
-          }
-          if (!len_normalize)
-            instance[i] = temp;
-          else
-            instance[i] = temp/(double)(d.body_length+nor_len);
-        }
-        instance[5] = 0;
+        double[] instance = computeWeights(d, q, idfs, tfQuery);
         Instance inst = new DenseInstance(1.0, instance);
         dataset.add(inst);
         map.get(q.query).put(d.url, index);
@@ -131,7 +123,7 @@ public class PairwiseLearner extends Learner {
         int doc_index = map.get(q.query).get(d.url);
         Instance doc_feat = new_data.get(doc_index);
         List<Double> feat_list = new ArrayList<Double>();
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < attributes.size() - 1; i++)
           feat_list.add(doc_feat.value(i));
         docs.add(new Pair<List<Double>, Double>(feat_list,
             rel.get(d.url.trim())));
@@ -143,25 +135,25 @@ public class PairwiseLearner extends Learner {
           double rel_j = docs.get(j).getSecond();
           if (rel_i == rel_j)
             continue;
-          double[] point = new double[6];
-          for (int k = 0; k < 5; k++)
+          double[] point = new double[attributes.size()];
+          for (int k = 0; k < attributes.size() - 1; k++)
             point[k] = docs.get(i).getFirst().get(k)
                 - docs.get(j).getFirst().get(k);
           if (rel_i < rel_j) {
             if (pos) {
-              for (int k = 0; k < 5; k++)
+              for (int k = 0; k < attributes.size() - 1; k++)
                 point[k] = -point[k];
-              point[5] = 1;
+              point[attributes.size() - 1] = 1;
             } else {
-              point[5] = 0;
+              point[attributes.size() - 1] = 0;
             }
           } else {
             if (!pos) {
-              for (int k = 0; k < 5; k++)
+              for (int k = 0; k < attributes.size() - 1; k++)
                 point[k] = -point[k];
-              point[5] = 0;
+              point[attributes.size() - 1] = 0;
             } else {
-              point[5] = 1;
+              point[attributes.size() - 1] = 1;
             }
           }
           Instance inst = new DenseInstance(1.0, point);
@@ -201,17 +193,6 @@ public class PairwiseLearner extends Learner {
       e.printStackTrace();
     }
 
-    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
-    attributes.add(new Attribute("url_w"));
-    attributes.add(new Attribute("title_w"));
-    attributes.add(new Attribute("body_w"));
-    attributes.add(new Attribute("header_w"));
-    attributes.add(new Attribute("anchor_w"));
-    ArrayList<String> labels = new ArrayList<String>();
-    labels.add("0");
-    labels.add("1");
-    attributes.add(new Attribute("pos_neg", labels));
-
     /* Build attributes list */
     dataset = new Instances("test_dataset", attributes, 0);
     /* Add data */
@@ -219,27 +200,7 @@ public class PairwiseLearner extends Learner {
       map.put(q.query, new HashMap<String, Integer>());
       Map<String, Double> tfQuery = Util.getQueryFreqs(q, sublinear);
       for (Document d : testData.get(q)) {
-        double[] instance = new double[6];
-        Map<Field, Map<String, Double>> tfs = Util.getDocTermFreqs(d, q,
-            sublinear);
-        Field[] fields = Field.values();
-        for (int i = 0; i < fields.length; i++) {
-          double temp = 0;
-          Field field = fields[i];
-          for (String word : tfQuery.keySet()) {
-            double idf_score;
-            if (idfs.containsKey(word))
-              idf_score = idfs.get(word);
-            else
-              idf_score = idfs.get("unseen term");
-            temp += tfQuery.get(word) * tfs.get(field).get(word) * idf_score;
-          }
-          if (!len_normalize)
-            instance[i] = temp;
-          else
-            instance[i] = temp/(double)(d.body_length+nor_len);
-        }
-        instance[5] = 0;
+        double[] instance = computeWeights(d,q,idfs,tfQuery);
         Instance inst = new DenseInstance(1.0, instance);
         dataset.add(inst);
         map.get(q.query).put(d.url, index);
@@ -306,18 +267,7 @@ public class PairwiseLearner extends Learner {
     for (int i = 0; i < first.numAttributes(); i++) {
       attr[i] = first.value(i) - second.value(i);
     }
-    attr[5] = 0;
-
-    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
-    attributes.add(new Attribute("url_w"));
-    attributes.add(new Attribute("title_w"));
-    attributes.add(new Attribute("body_w"));
-    attributes.add(new Attribute("header_w"));
-    attributes.add(new Attribute("anchor_w"));
-    ArrayList<String> labels = new ArrayList<String>();
-    labels.add("0");
-    labels.add("1");
-    attributes.add(new Attribute("pos_neg", labels));
+    attr[attributes.size() - 1] = 0;
 
     Instances dataset = new Instances("test_one", attributes, 0);
     Instance inst = new DenseInstance(1.0, attr);
@@ -330,6 +280,30 @@ public class PairwiseLearner extends Learner {
       e.printStackTrace();
     }
     return 0;
+  }
+
+  public double[] computeWeights(Document d, Query q, Map<String, Double> idfs,
+      Map<String, Double> tfQuery) {
+    double[] weights = new double[attributes.size()];
+    Map<Field, Map<String, Double>> tfs = Util.getDocTermFreqs(d, q, sublinear);
+    Field[] fields = Field.values();
+    for (int i = 0; i < fields.length; i++) {
+      double temp = 0;
+      Field field = fields[i];
+      for (String word : tfQuery.keySet()) {
+        double idf_score;
+        if (idfs.containsKey(word))
+          idf_score = idfs.get(word);
+        else
+          idf_score = idfs.get("unseen term");
+        temp += tfQuery.get(word) * tfs.get(field).get(word) * idf_score;
+      }
+      if (!len_normalize)
+        weights[i] = temp;
+      else
+        weights[i] = temp / (double) (d.body_length + nor_len);
+    }
+    return weights;
   }
 
 }
