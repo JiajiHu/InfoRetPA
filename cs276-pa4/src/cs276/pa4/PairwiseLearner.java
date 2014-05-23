@@ -21,6 +21,8 @@ public class PairwiseLearner extends Learner {
   private LibSVM model;
   // NOTE: sublinear = true quite a bit better!
   private final boolean sublinear = true;
+  private final boolean len_normalize = true;
+  private final double nor_len = 500;
 
   public PairwiseLearner(boolean isLinearKernel) {
     try {
@@ -100,7 +102,10 @@ public class PairwiseLearner extends Learner {
               idf_score = idfs.get("unseen term");
             temp += tfQuery.get(word) * tfs.get(field).get(word) * idf_score;
           }
-          instance[i] = temp;
+          if (!len_normalize)
+            instance[i] = temp;
+          else
+            instance[i] = temp/(double)(d.body_length+nor_len);
         }
         instance[5] = 0;
         Instance inst = new DenseInstance(1.0, instance);
@@ -229,7 +234,10 @@ public class PairwiseLearner extends Learner {
               idf_score = idfs.get("unseen term");
             temp += tfQuery.get(word) * tfs.get(field).get(word) * idf_score;
           }
-          instance[i] = temp;
+          if (!len_normalize)
+            instance[i] = temp;
+          else
+            instance[i] = temp/(double)(d.body_length+nor_len);
         }
         instance[5] = 0;
         Instance inst = new DenseInstance(1.0, instance);
