@@ -27,14 +27,14 @@ public class PairwiseLearner extends Learner {
   private ArrayList<Attribute> attributes;
   private boolean task3 = false;
   
-  public PairwiseLearner(boolean isLinearKernel) {
+  public PairwiseLearner(boolean isLinearKernel, boolean isTask3) {
     try {
       model = new LibSVM();
     } catch (Exception e) {
       e.printStackTrace();
     }
-
-    if (task3)
+    task3 = isTask3;
+    if (isTask3)
       setAttributesTask3();
     else
       setAttributes();
@@ -45,7 +45,7 @@ public class PairwiseLearner extends Learner {
     }
   }
 
-  public PairwiseLearner(double C, double gamma, boolean isLinearKernel) {
+  public PairwiseLearner(double C, double gamma, boolean isLinearKernel, boolean isTask3) {
     try {
       model = new LibSVM();
     } catch (Exception e) {
@@ -55,7 +55,8 @@ public class PairwiseLearner extends Learner {
     model.setCost(C);
     model.setGamma(gamma); // only matter for RBF kernel
 
-    if (task3)
+    task3 = isTask3;
+    if (isTask3)
       setAttributesTask3();
     else
       setAttributes();
@@ -330,6 +331,7 @@ public class PairwiseLearner extends Learner {
         temp += tfQuery.get(word) * tfs.get(field).get(word) * idf_score;
       }
       if (!len_normalize)
+//        if (!len_normalize || i != 2)
         weights[i] = temp;
       else
         weights[i] = temp / (double) (d.body_length + nor_len);
