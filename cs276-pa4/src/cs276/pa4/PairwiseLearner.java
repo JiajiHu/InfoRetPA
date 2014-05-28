@@ -391,23 +391,23 @@ public class PairwiseLearner extends Learner {
     // Add pagerank score
     weights[i] = d.page_rank;
     i++;
-//    
-//    // Add smallest window
-//    double window = -1.0;
-//    if (d.url != null)
-//      window = checkWindow(q, join(d.url.split("[^a-z0-9]"), " "), tfQuery, window);
-//    if (d.title != null)
-//      window = checkWindow(q, d.title, tfQuery, window);
-//    if (d.headers != null)
-//      for (String header : d.headers)
-//        window = checkWindow(q, header, tfQuery, window);
-//    if (d.anchors != null)
-//      for (String anchor : d.anchors.keySet())
-//        window = checkWindow(q, anchor, tfQuery, window);
-//    if (d.body_hits != null)
-//      window = checkBodyWindow(q, tfQuery, d.body_hits, window);
-//    
-//    weights[i] = window;
+    
+    // Add smallest window
+    double window = -1.0;
+    if (d.url != null)
+      window = checkWindow(q, join(d.url.split("[^a-z0-9]"), " "), tfQuery, window);
+    if (d.title != null)
+      window = checkWindow(q, d.title, tfQuery, window);
+    if (d.headers != null)
+      for (String header : d.headers)
+        window = checkWindow(q, header, tfQuery, window);
+    if (d.anchors != null)
+      for (String anchor : d.anchors.keySet())
+        window = checkWindow(q, anchor, tfQuery, window);
+    if (d.body_hits != null)
+      window = checkBodyWindow(q, tfQuery, d.body_hits, window);
+    
+    weights[i] = window;
 	return weights;
   }
   
