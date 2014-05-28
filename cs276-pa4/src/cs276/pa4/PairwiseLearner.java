@@ -29,8 +29,8 @@ public class PairwiseLearner extends Learner {
   private final boolean len_normalize = true;
   private final double nor_len = 500;
   private ArrayList<Attribute> attributes;
-  private boolean task3 = false;
-  
+  private boolean task3;
+
   public PairwiseLearner(boolean isLinearKernel, boolean isTask3) {
     try {
       model = new LibSVM();
@@ -42,14 +42,15 @@ public class PairwiseLearner extends Learner {
       setAttributesTask3();
     else
       setAttributes();
-    
+
     if (isLinearKernel) {
       model.setKernelType(new SelectedTag(LibSVM.KERNELTYPE_LINEAR,
           LibSVM.TAGS_KERNELTYPE));
     }
   }
 
-  public PairwiseLearner(double C, double gamma, boolean isLinearKernel, boolean isTask3) {
+  public PairwiseLearner(double C, double gamma, boolean isLinearKernel,
+      boolean isTask3) {
     try {
       model = new LibSVM();
     } catch (Exception e) {
@@ -121,7 +122,7 @@ public class PairwiseLearner extends Learner {
     trainset = new Instances("train_dataset", attributes, 0);
     for (Query q : trainData.keySet()) {
       Map<String, Double> rel = relData.get(q.query.trim());
-      // [[feature vector], rel value] 
+      // [[feature vector], rel value]
       List<Pair<List<Double>, Double>> docs = new ArrayList<Pair<List<Double>, Double>>();
       for (Document d : trainData.get(q)) {
         int doc_index = map.get(q.query).get(d.url);
@@ -291,7 +292,7 @@ public class PairwiseLearner extends Learner {
     return 0;
   }
 
-  public void setAttributes(){
+  public void setAttributes() {
     attributes = new ArrayList<Attribute>();
     attributes.add(new Attribute("url_w"));
     attributes.add(new Attribute("title_w"));
@@ -303,8 +304,8 @@ public class PairwiseLearner extends Learner {
     labels.add("1");
     attributes.add(new Attribute("pos_neg", labels));
   }
-  
-  public void setAttributesTask3(){
+
+  public void setAttributesTask3() {
     attributes = new ArrayList<Attribute>();
     attributes.add(new Attribute("url_w"));
     attributes.add(new Attribute("title_w"));
@@ -314,16 +315,15 @@ public class PairwiseLearner extends Learner {
     attributes.add(new Attribute("bm25"));
     attributes.add(new Attribute("pagerank"));
     attributes.add(new Attribute("smallest_window"));
-    
+
     ArrayList<String> labels = new ArrayList<String>();
     labels.add("0");
     labels.add("1");
     attributes.add(new Attribute("pos_neg", labels));
   }
-  
-  
-  public double[] computeAttributes(Document d, Query q, Map<String, Double> idfs,
-      Map<String, Double> tfQuery) {
+
+  public double[] computeAttributes(Document d, Query q,
+      Map<String, Double> idfs, Map<String, Double> tfQuery) {
     double[] weights = new double[attributes.size()];
     Map<Field, Map<String, Double>> tfs = Util.getDocTermFreqs(d, q, sublinear);
     Field[] fields = Field.values();
@@ -339,7 +339,7 @@ public class PairwiseLearner extends Learner {
         temp += tfQuery.get(word) * tfs.get(field).get(word) * idf_score;
       }
       if (!len_normalize)
-//        if (!len_normalize || i != 2)
+        // if (!len_normalize || i != 2)
         weights[i] = temp;
       else
         weights[i] = temp / (double) (d.body_length + nor_len);
@@ -347,15 +347,15 @@ public class PairwiseLearner extends Learner {
     return weights;
   }
 
-  public double[] computeAttributesTask3(Document d, Query q, Map<String, Double> idfs,
-      Map<String, Double> tfQuery) {
-	  
-	double[] weights = new double[attributes.size()];
+  public double[] computeAttributesTask3(Document d, Query q,
+      Map<String, Double> idfs, Map<String, Double> tfQuery) {
+
+    double[] weights = new double[attributes.size()];
     Map<Field, Map<String, Double>> tfs = Util.getDocTermFreqs(d, q, sublinear);
     Field[] fields = Field.values();
-    
+
     // Add tf-idf weights
-    int i=0;
+    int i = 0;
     for (; i < fields.length; i++) {
       double temp = 0;
       Field field = fields[i];
@@ -372,30 +372,37 @@ public class PairwiseLearner extends Learner {
       else
         weights[i] = temp / (double) (d.body_length + nor_len);
     }
-    
+
     // Add bm25 weights
-    double[] WEIGHTS = {3.3, 5.2, 0.9, 2.85, 3.45};
-    double[] B_WEIGHTS = {0.0, 0.2, 0.8, 0.5, 0.0};
-    double[] len = {mapSum(parseURL(d.url)), mapSum(parseTitle(d.title)), (double) d.body_length, mapSum(parseHeader(d.headers)), mapSum(parseAnchor(d.anchors))};
-    double[] avrLen = {10.759, 6.101, 3621.364, 14.813, 401.709};
+    double[] WEIGHTS = { 3.3, 5.2, 0.9, 2.85, 3.45 };
+    double[] B_WEIGHTS = { 0.0, 0.2, 0.8, 0.5, 0.0 };
+    double[] len = { mapSum(Util.parseURL(d.url)),
+        mapSum(Util.parseTitle(d.title)), (double) d.body_length,
+        mapSum(Util.parseHeader(d.headers)),
+        mapSum(Util.parseAnchor(d.anchors)) };
+    double[] avrLen = { 10.759, 6.101, 3621.364, 14.813, 401.709 };
     double K1 = 4.9;
     int V_NUM = 2;
+    int W_NUM = 2;
     double PR_Lambda = 3.25;
     double PR_LambdaPrime = 0.05;
     double PR_LambdaPrime2 = 0.1;
-    normalizeTFs (tfs, d, q, len, B_WEIGHTS, avrLen);
-    double bm25 = getNetScore (idfs, WEIGHTS, V_NUM, K1, PR_Lambda, PR_LambdaPrime, PR_LambdaPrime2, tfs, q, tfQuery, d); 
+    normalizeTFs(tfs, d, q, len, B_WEIGHTS, avrLen);
+    double bm25 = getNetScore(idfs, WEIGHTS, V_NUM, K1, PR_Lambda,
+        PR_LambdaPrime, PR_LambdaPrime2, tfs, q, tfQuery, d);
     weights[i] = bm25;
     i++;
-    
+
     // Add pagerank score
-    weights[i] = d.page_rank;
+    weights[i] = functionV(V_NUM, d.page_rank, PR_LambdaPrime, PR_LambdaPrime2);
+    ;
     i++;
-    
+
     // Add smallest window
     double window = -1.0;
     if (d.url != null)
-      window = checkWindow(q, join(d.url.split("[^a-z0-9]"), " "), tfQuery, window);
+      window = checkWindow(q, join(d.url.split("[^a-z0-9]"), " "), tfQuery,
+          window);
     if (d.title != null)
       window = checkWindow(q, d.title, tfQuery, window);
     if (d.headers != null)
@@ -406,255 +413,198 @@ public class PairwiseLearner extends Learner {
         window = checkWindow(q, anchor, tfQuery, window);
     if (d.body_hits != null)
       window = checkBodyWindow(q, tfQuery, d.body_hits, window);
-    
-    weights[i] = window;
-	return weights;
+
+    weights[i] = functionW(W_NUM, window, q.words.size());
+
+    return weights;
   }
-  
-	// Helper functions for smallest window
-	public double checkWindow(Query q, String docstr,
-			Map<String, Double> target, double curSmallestWindow) {
-		String[] str = docstr.split("[^a-z0-9]");
-		Map<String, Double> current = new HashMap<String, Double>();
-		double window = curSmallestWindow;
-		for (String word : target.keySet()) {
-			current.put(word, 0.0);
-		}
-		int left = -1;
-		int right = 0;
-		int full = q.words.size();
-		int count = 0;
-		while (right < str.length) {
-			if (target.containsKey(str[right])) {
-				current.put(str[right], current.get(str[right]) + 1.0);
-				if (current.get(str[right]) <= target.get(str[right])) {
-					count += 1;
-					if (count == full) {
-						while (count == full) {
-							left++;
-							if (target.containsKey(str[left])) {
-								current.put(str[left],
-										current.get(str[left]) - 1.0);
-								if (current.get(str[left]) < target
-										.get(str[left])) {
-									count--;
-								}
-							}
-						}
-						if (window < 0 || right - left + 1 < window)
-							window = right - left + 1;
-					}
-				}
-			}
-			right++;
-		}
-		return window;
-	}
 
-	public double checkBodyWindow(Query q, Map<String, Double> target,
-			Map<String, List<Integer>> body, double curSmallestWindow) {
-		double window = curSmallestWindow;
+  // Helper functions for smallest window
+  public double checkWindow(Query q, String docstr, Map<String, Double> target,
+      double curSmallestWindow) {
+    String[] str = docstr.split("[^a-z0-9]");
+    Map<String, Double> current = new HashMap<String, Double>();
+    double window = curSmallestWindow;
+    for (String word : target.keySet()) {
+      current.put(word, 0.0);
+    }
+    int left = -1;
+    int right = 0;
+    int full = q.words.size();
+    int count = 0;
+    while (right < str.length) {
+      if (target.containsKey(str[right])) {
+        current.put(str[right], current.get(str[right]) + 1.0);
+        if (current.get(str[right]) <= target.get(str[right])) {
+          count += 1;
+          if (count == full) {
+            while (count == full) {
+              left++;
+              if (target.containsKey(str[left])) {
+                current.put(str[left], current.get(str[left]) - 1.0);
+                if (current.get(str[left]) < target.get(str[left])) {
+                  count--;
+                }
+              }
+            }
+            if (window < 0 || right - left + 1 < window)
+              window = right - left + 1;
+          }
+        }
+      }
+      right++;
+    }
+    return window;
+  }
 
-		Map<String, Double> current = new HashMap<String, Double>();
-		for (String word : target.keySet()) {
-			current.put(word, 0.0);
-		}
+  public double checkBodyWindow(Query q, Map<String, Double> target,
+      Map<String, List<Integer>> body, double curSmallestWindow) {
+    double window = curSmallestWindow;
 
-		List<Pair<String, Integer>> body_hits = new ArrayList<Pair<String, Integer>>();
-		for (String word : body.keySet()) {
-			if (body.get(word).size() < target.get(word))
-				return window;
-			for (int i = 0; i < body.get(word).size(); i++)
-				body_hits.add(new Pair<String, Integer>(word, body.get(word)
-						.get(i)));
-		}
-		Collections.sort(body_hits, new Comparator<Pair<String, Integer>>() {
-			public int compare(Pair<String, Integer> o1,
-					Pair<String, Integer> o2) {
-				if (o1.getSecond() < o2.getSecond())
-					return -1;
-				return 1;
-			}
-		});
-		int left = -1;
-		int right = 0;
-		int full = q.words.size();
-		int count = 0;
-		while (right < body_hits.size()) {
-			current.put(body_hits.get(right).getFirst(),
-					current.get(body_hits.get(right).getFirst()) + 1.0);
-			if (current.get(body_hits.get(right).getFirst()) <= target
-					.get(body_hits.get(right).getFirst())) {
-				count += 1;
-				if (count == full) {
-					while (count == full) {
-						left++;
-						if (target.containsKey(body_hits.get(left).getFirst())) {
-							current.put(
-									body_hits.get(left).getFirst(),
-									current.get(body_hits.get(left).getFirst()) - 1.0);
-							if (current.get(body_hits.get(left).getFirst()) < target
-									.get(body_hits.get(left).getFirst())) {
-								count--;
-							}
-						}
-					}
-					if (window < 0
-							|| body_hits.get(right).getSecond()
-									- body_hits.get(left).getSecond() + 1 < window)
-						window = body_hits.get(right).getSecond()
-								- body_hits.get(left).getSecond() + 1;
-				}
-			}
-			right++;
-		}
-		return window;
-	}
+    Map<String, Double> current = new HashMap<String, Double>();
+    for (String word : target.keySet()) {
+      current.put(word, 0.0);
+    }
 
-	public static String join(String[] list, String delim) {
-		StringBuilder sb = new StringBuilder();
-		String loopDelim = "";
-		for (String s : list) {
-			sb.append(loopDelim);
-			sb.append(s);
-			loopDelim = delim;
-		}
-		return sb.toString();
-	}
-  
+    List<Pair<String, Integer>> body_hits = new ArrayList<Pair<String, Integer>>();
+    for (String word : body.keySet()) {
+      if (body.get(word).size() < target.get(word))
+        return window;
+      for (int i = 0; i < body.get(word).size(); i++)
+        body_hits.add(new Pair<String, Integer>(word, body.get(word).get(i)));
+    }
+    Collections.sort(body_hits, new Comparator<Pair<String, Integer>>() {
+      public int compare(Pair<String, Integer> o1, Pair<String, Integer> o2) {
+        if (o1.getSecond() < o2.getSecond())
+          return -1;
+        return 1;
+      }
+    });
+    int left = -1;
+    int right = 0;
+    int full = q.words.size();
+    int count = 0;
+    while (right < body_hits.size()) {
+      current.put(body_hits.get(right).getFirst(),
+          current.get(body_hits.get(right).getFirst()) + 1.0);
+      if (current.get(body_hits.get(right).getFirst()) <= target.get(body_hits
+          .get(right).getFirst())) {
+        count += 1;
+        if (count == full) {
+          while (count == full) {
+            left++;
+            if (target.containsKey(body_hits.get(left).getFirst())) {
+              current.put(body_hits.get(left).getFirst(),
+                  current.get(body_hits.get(left).getFirst()) - 1.0);
+              if (current.get(body_hits.get(left).getFirst()) < target
+                  .get(body_hits.get(left).getFirst())) {
+                count--;
+              }
+            }
+          }
+          if (window < 0
+              || body_hits.get(right).getSecond()
+                  - body_hits.get(left).getSecond() + 1 < window)
+            window = body_hits.get(right).getSecond()
+                - body_hits.get(left).getSecond() + 1;
+        }
+      }
+      right++;
+    }
+    return window;
+  }
+
+  public static String join(String[] list, String delim) {
+    StringBuilder sb = new StringBuilder();
+    String loopDelim = "";
+    for (String s : list) {
+      sb.append(loopDelim);
+      sb.append(s);
+      loopDelim = delim;
+    }
+    return sb.toString();
+  }
+
   // Helper functions for BM25
-	public void normalizeTFs(Map<Field, Map<String, Double>> tfs, Document d,
-			Query q, double[] lengths, double[] B_WEIGHTS, double[] avgLengths) {
-		Field[] fields = Field.values();
-		for (int i = 0; i < fields.length; i++) {
-			Field field = fields[i];
-			double len = lengths[i];
-			if (len == 0)
-				continue;
-			double b_weight = B_WEIGHTS[i];
-			double avgLen = avgLengths[i];
-			double norm = 1 + b_weight * (len / avgLen - 1);
+  public void normalizeTFs(Map<Field, Map<String, Double>> tfs, Document d,
+      Query q, double[] lengths, double[] B_WEIGHTS, double[] avgLengths) {
+    Field[] fields = Field.values();
+    for (int i = 0; i < fields.length; i++) {
+      Field field = fields[i];
+      double len = lengths[i];
+      if (len == 0)
+        continue;
+      double b_weight = B_WEIGHTS[i];
+      double avgLen = avgLengths[i];
+      double norm = 1 + b_weight * (len / avgLen - 1);
 
-			Map<String, Double> map = tfs.get(field);
-			for (String word : map.keySet()) {
-				map.put(word, map.get(word) / norm);
-			}
-		}
-	}
-	public double getNetScore(Map<String, Double> idfs, double[] WEIGHTS, int V_NUM, 
-			double K1, double PR_Lambda, double PR_LambdaPrime, double PR_LambdaPrime2, 
-			Map<Field, Map<String, Double>> tfs, Query q, Map<String, Double> tfQuery, Document d) {
-		
-		double score = 0.0;
-		Field[] fields = Field.values();
-		for (String term : tfQuery.keySet()) {
-			double idf_score;
-			if (idfs.containsKey(term)) {
-				idf_score = idfs.get(term);
-			} else {
-				idf_score = idfs.get("unseen term");
-			}
-			double wdt = 0;
-			for (int i = 0; i < fields.length; i++) {
-				wdt += WEIGHTS[i] * tfs.get(fields[i]).get(term);
-			}
-			score += (wdt / (K1 + wdt)) * idf_score;
-		}
-
-		score += PR_Lambda * functionV(V_NUM, d.page_rank, PR_LambdaPrime, PR_LambdaPrime2);
-		return score;
-	}
-
-	private double functionV(int select, double f, double PR_LambdaPrime, double PR_LambdaPrime2) {
-		if (select == 0) {
-			return Math.log(PR_LambdaPrime + f);
-		} else if (select == 1) {
-			return f / (PR_LambdaPrime + f);
-		} else if (select == 2) {
-			return 1 / (PR_LambdaPrime + Math.exp(-f * PR_LambdaPrime2));
-		}
-		return 0.0;
-	}
-  
-  // get map sum
-  public double mapSum (Map<String, Double> map){
-	  double result = 0.0;
-	  for (String key: map.keySet()){
-		  result += map.get(key);
-	  }
-	  return result;
+      Map<String, Double> map = tfs.get(field);
+      for (String word : map.keySet()) {
+        map.put(word, map.get(word) / norm);
+      }
+    }
   }
-  
-	// parse document fields
-	public Map<String, Double> parseURL(String url) {
-		Map<String, Double> u_tf = new HashMap<String, Double>();
-		if (url == null)
-			return u_tf;
-		String[] tokens = url.toLowerCase().trim().split("[^a-z0-9]");
-		for (int i = 1; i < tokens.length; i++) {
-			String token = tokens[i];
-			if (u_tf.containsKey(token))
-				u_tf.put(token, u_tf.get(token) + 1.0);
-			else
-				u_tf.put(token, 1.0);
-		}
-		return u_tf;
-	}
 
-	public Map<String, Double> parseTitle(String title) {
-		Map<String, Double> t_tf = new HashMap<String, Double>();
-		if (title == null)
-			return t_tf;
-		String[] tokens = title.toLowerCase().trim().split("\\s+");
-		for (String token : tokens) {
-			if (t_tf.containsKey(token))
-				t_tf.put(token, t_tf.get(token) + 1.0);
-			else
-				t_tf.put(token, 1.0);
-		}
-		return t_tf;
-	}
+  public double getNetScore(Map<String, Double> idfs, double[] WEIGHTS,
+      int V_NUM, double K1, double PR_Lambda, double PR_LambdaPrime,
+      double PR_LambdaPrime2, Map<Field, Map<String, Double>> tfs, Query q,
+      Map<String, Double> tfQuery, Document d) {
 
-	public Map<String, Double> parseHeader(List<String> header) {
-		Map<String, Double> h_tf = new HashMap<String, Double>();
-		if (header == null)
-			return h_tf;
-		for (String head : header) {
-			String[] tokens = head.toLowerCase().trim().split("\\s+");
-			for (String token : tokens) {
-				if (h_tf.containsKey(token))
-					h_tf.put(token, h_tf.get(token) + 1.0);
-				else
-					h_tf.put(token, 1.0);
-			}
-		}
-		return h_tf;
-	}
+    double score = 0.0;
+    Field[] fields = Field.values();
+    for (String term : tfQuery.keySet()) {
+      double idf_score;
+      if (idfs.containsKey(term)) {
+        idf_score = idfs.get(term);
+      } else {
+        idf_score = idfs.get("unseen term");
+      }
+      double wdt = 0;
+      for (int i = 0; i < fields.length; i++) {
+        wdt += WEIGHTS[i] * tfs.get(fields[i]).get(term);
+      }
+      score += (wdt / (K1 + wdt)) * idf_score;
+    }
 
-	public Map<String, Double> parseAnchor(Map<String, Integer> anchor) {
-		Map<String, Double> a_tf = new HashMap<String, Double>();
-		if (anchor == null)
-			return a_tf;
-		for (String anchor_text : anchor.keySet()) {
-			for (String token : anchor_text.toLowerCase().split("\\s+")) {
-				if (a_tf.containsKey(token))
-					a_tf.put(
-							token,
-							(double) (anchor.get(anchor_text) + a_tf.get(token)));
-				else
-					a_tf.put(token, (double) anchor.get(anchor_text));
-			}
-		}
-		return a_tf;
-	}
+    // score += PR_Lambda * functionV(V_NUM, d.page_rank, PR_LambdaPrime,
+    // PR_LambdaPrime2);
+    return score;
+  }
 
-	public Map<String, Double> parseBody(Map<String, List<Integer>> body) {
-		Map<String, Double> b_tf = new HashMap<String, Double>();
-		if (body == null)
-			return b_tf;
-		for (String token : body.keySet()) {
-			b_tf.put(token, (double) body.get(token).size());
-		}
-		return b_tf;
-	}
+  private double functionV(int select, double f, double PR_LambdaPrime,
+      double PR_LambdaPrime2) {
+    if (select == 0) {
+      return Math.log(PR_LambdaPrime + f);
+    } else if (select == 1) {
+      return f / (PR_LambdaPrime + f);
+    } else if (select == 2) {
+      return 1 / (PR_LambdaPrime + Math.exp(-f * PR_LambdaPrime2));
+    }
+    return 0.0;
+  }
+
+  private double functionW(int select, double window, double qsize) {
+    if (window == -1.0)
+      return 0;
+    switch (select) {
+    case 0:
+      return 0;
+    case 1:
+      return 1 / (window - qsize + 1);
+    case 2:
+      return Math.exp(qsize - window);
+    default:
+      return 0;
+    }
+  }
+
+  // get map sum
+  public double mapSum(Map<String, Double> map) {
+    double result = 0.0;
+    for (String key : map.keySet()) {
+      result += map.get(key);
+    }
+    return result;
+  }
+
 }
