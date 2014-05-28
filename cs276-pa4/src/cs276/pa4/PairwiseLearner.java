@@ -313,7 +313,7 @@ public class PairwiseLearner extends Learner {
     attributes.add(new Attribute("anchor_w"));
     attributes.add(new Attribute("bm25"));
     attributes.add(new Attribute("pagerank"));
-//    attributes.add(new Attribute("smallest_window"));
+    attributes.add(new Attribute("smallest_window"));
     
     ArrayList<String> labels = new ArrayList<String>();
     labels.add("0");
@@ -387,10 +387,10 @@ public class PairwiseLearner extends Learner {
     double bm25 = getNetScore (idfs, WEIGHTS, V_NUM, K1, PR_Lambda, PR_LambdaPrime, PR_LambdaPrime2, tfs, q, tfQuery, d); 
     weights[i] = bm25;
     i++;
-//    
-//    // Add pagerank score
-//    weights[i] = d.page_rank;
-//    i++;
+    
+    // Add pagerank score
+    weights[i] = d.page_rank;
+    i++;
 //    
 //    // Add smallest window
 //    double window = -1.0;
