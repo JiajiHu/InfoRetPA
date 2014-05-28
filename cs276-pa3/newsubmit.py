@@ -48,8 +48,7 @@ def submit():
   # Part Identifier
   (partIdx, sid) = partPrompt()
 
-  #sid = sid + '-dev' # append "-dev" if the assignment hasn't been published 
-  
+
   # Get Challenge
   (login, ch, state, ch_aux) = getChallenge(login, sid) #sid is the "part identifier"
   if((not login) or (not ch) or (not state)):
@@ -61,6 +60,7 @@ def submit():
   ch_resp = challengeResponse(login, password, ch)
   (result, string) = submitSolution(login, ch_resp, sid, output(partIdx,ch_aux), \
                                   source(partIdx), state, ch_aux)
+
   print '== %s' % string.strip()
 
 
@@ -123,6 +123,10 @@ def submit_url():
 
 def submitSolution(email_address, ch_resp, sid, output, source, state, ch_aux):
   """Submits a solution to the server. Returns (result, string)."""
+  #source_64_msg = email.message.Message()
+  #source_64_msg.set_payload(source)
+  #email.encoders.encode_base64(source_64_msg)
+
   output_64_msg = email.message.Message()
   output_64_msg.set_payload(output)
   email.encoders.encode_base64(output_64_msg)
@@ -179,10 +183,26 @@ def ensure_dir(d):
     if not os.path.exists(d):
         os.makedirs(d)
         
+# def getFiles(tempoutfile):
+#     pathq = 'http://www.stanford.edu/~aimeeli/cs276_pa2';
+#     filenames = ['queries.txt']    
+
+#     ensure_dir(tempoutfile+'/test');
+    
+#     for filename in filenames:
+#         remotefile = urlopen(pathq + "/" + filename)
+#         localfile = open(tempoutfile+'/test/'+filename,'w')
+#         localfile.write(remotefile.read())
+#         localfile.close()
+#         remotefile.close()
+  
+        
 def output(partIdx,ch_aux):
   print '== If you use queryDocTrainData or queryDocTrainRel, make sure it\'s in the current working directory'
   print '== Running your code ...'
   print '== Your code should output results (and nothing else) to stdout'
+  # tempoutfile = tempfile.mkdtemp()
+  # getFiles(tempoutfile)
   outputString = ''
 
   tempoutfile = 'tmp' + str(random.randint(0,1<<20))
@@ -190,7 +210,7 @@ def output(partIdx,ch_aux):
   localfile.write(ch_aux)
   localfile.close()
 
-  linesOutput = 1065 
+  linesOutput = 1065
   
   if not os.path.exists("people.txt"):
       print "There is no people.txt file in this directory. Please make people.txt file in this directory with your and your partner's SUNet ID in separate lines (do NOT include @stanford.edu)"
@@ -222,6 +242,8 @@ def output(partIdx,ch_aux):
     print err
     if (len(guesses) != linesOutput):
         print 'Warning. The number of url-document pairs ' + str(len(guesses)) + ' is not correct. Please ensure that the output is formatted properly.'
+    stats['result'] = res
+
   elif partIdx == 2:
       print 'Calling ./rank.sh for Task 2 (this might take a while)'
       start = time()
@@ -232,6 +254,8 @@ def output(partIdx,ch_aux):
       print err
       if (len(guesses) != linesOutput):
           print 'Warning. The number of url-document pairs is not correct. Please ensure that the output is formatted properly.'
+      stats['result'] = res
+
   elif partIdx == 3:
       print 'Calling ./rank.sh for Task 3 (this might take a while)'
       start = time()
@@ -242,6 +266,8 @@ def output(partIdx,ch_aux):
       print err
       if (len(guesses) != linesOutput):
           print 'Warning. The number of url-document pairs is not correct. Please ensure that the output is formatted properly.'
+      stats['result'] = res
+
   elif partIdx == 4:
       print 'Calling ./rank.sh for Task 4 (this might take a while)'
       start = time()
@@ -252,6 +278,8 @@ def output(partIdx,ch_aux):
       print err
       if (len(guesses) != linesOutput):
           print 'Warning. The number of url-document pairs is not correct. Please ensure that the output is formatted properly.'
+      stats['result'] = res
+      
   else:
     print '[WARNING]\t[output]\tunknown partId: %s' % partIdx
     sys.exit(1)

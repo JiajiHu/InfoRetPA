@@ -118,7 +118,9 @@ public class Rank {
     Map<String, Double> idfs = null;
     String dataDir = "data/corpus";
     String idfFile = "idfFile";
-    idfs = LoadHandler.buildDFs(dataDir, idfFile);
+    idfs = LoadHandler.loadDFs(idfFile);
+    if (idfs == null)
+      idfs = LoadHandler.buildDFs(dataDir, idfFile);
 
     if (args.length < 2) {
       System.err
