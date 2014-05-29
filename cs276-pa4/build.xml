@@ -20,6 +20,7 @@
     <pathelement location="bin"/>
     <fileset dir=".">
       <include name="lib/weka.jar"/>
+      <include name="lib/ejml-0.23.jar"/>
     </fileset>
   </path>
 
