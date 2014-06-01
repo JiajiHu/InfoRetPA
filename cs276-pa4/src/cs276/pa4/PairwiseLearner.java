@@ -27,21 +27,23 @@ public class PairwiseLearner extends Learner {
   private final boolean sublinear = true;
   // NOTE: len_normalize a lot better!
   private final boolean len_normalize = true;
-  private final double nor_len = 550;
+  private final double nor_len = 500;
   private ArrayList<Attribute> attributes;
   private boolean task3;
+  private boolean isStd;
 
-  public PairwiseLearner(boolean isLinearKernel, boolean isTask3) {
+  public PairwiseLearner(boolean isLinearKernel, boolean isTask3, boolean std) {
     try {
       model = new LibSVM();
     } catch (Exception e) {
       e.printStackTrace();
     }
+    isStd = std;
     task3 = isTask3;
     if (isTask3)
-      setAttributesTask3();
+      attributes = setAttributesTask3();
     else
-      setAttributes();
+      attributes = setAttributes();
 
     if (isLinearKernel) {
       model.setKernelType(new SelectedTag(LibSVM.KERNELTYPE_LINEAR,
@@ -50,7 +52,7 @@ public class PairwiseLearner extends Learner {
   }
 
   public PairwiseLearner(double C, double gamma, boolean isLinearKernel,
-      boolean isTask3) {
+      boolean isTask3, boolean std) {
     try {
       model = new LibSVM();
     } catch (Exception e) {
@@ -60,11 +62,12 @@ public class PairwiseLearner extends Learner {
     model.setCost(C);
     model.setGamma(gamma); // only matter for RBF kernel
 
+    isStd = std;
     task3 = isTask3;
     if (isTask3)
-      setAttributesTask3();
+      attributes = setAttributesTask3();
     else
-      setAttributes();
+      attributes = setAttributes();
 
     if (isLinearKernel) {
       model.setKernelType(new SelectedTag(LibSVM.KERNELTYPE_LINEAR,
@@ -108,18 +111,19 @@ public class PairwiseLearner extends Learner {
       }
     }
 
-//    // normalize feature matrix
-//    Instances new_data = null;
-//    Standardize filter = new Standardize();
-//    try {
-//      filter.setInputFormat(dataset);
-//      new_data = Filter.useFilter(dataset, filter);
-//    } catch (Exception e) {
-//      e.printStackTrace();
-//    }
-
     Instances new_data = dataset;
-    
+
+    if (isStd) {
+      // normalize feature matrix
+      Standardize filter = new Standardize();
+      try {
+        filter.setInputFormat(dataset);
+        new_data = Filter.useFilter(dataset, filter);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+
     Instances trainset = null;
     trainset = new Instances("train_dataset", attributes, 0);
     for (Query q : trainData.keySet()) {
@@ -221,13 +225,15 @@ public class PairwiseLearner extends Learner {
       }
     }
     Instances new_data = dataset;
-//    Standardize filter = new Standardize();
-//    try {
-//      filter.setInputFormat(dataset);
-//      new_data = Filter.useFilter(dataset, filter);
-//    } catch (Exception e) {
-//      e.printStackTrace();
-//    }
+    if (isStd) {
+      Standardize filter = new Standardize();
+      try {
+        filter.setInputFormat(dataset);
+        new_data = Filter.useFilter(dataset, filter);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
     new_data.setClassIndex(new_data.numAttributes() - 1);
     testFeatures.features = new_data;
     testFeatures.index_map = map;
@@ -295,8 +301,8 @@ public class PairwiseLearner extends Learner {
     return 0;
   }
 
-  public void setAttributes() {
-    attributes = new ArrayList<Attribute>();
+  public static ArrayList<Attribute> setAttributes() {
+    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
     attributes.add(new Attribute("url_w"));
     attributes.add(new Attribute("title_w"));
     attributes.add(new Attribute("body_w"));
@@ -306,10 +312,11 @@ public class PairwiseLearner extends Learner {
     labels.add("0");
     labels.add("1");
     attributes.add(new Attribute("pos_neg", labels));
+    return attributes;
   }
 
-  public void setAttributesTask3() {
-    attributes = new ArrayList<Attribute>();
+  public static ArrayList<Attribute> setAttributesTask3() {
+    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
     attributes.add(new Attribute("url_w"));
     attributes.add(new Attribute("title_w"));
     attributes.add(new Attribute("body_w"));
@@ -323,6 +330,7 @@ public class PairwiseLearner extends Learner {
     labels.add("0");
     labels.add("1");
     attributes.add(new Attribute("pos_neg", labels));
+    return attributes;
   }
 
   public double[] computeAttributes(Document d, Query q,
@@ -397,14 +405,15 @@ public class PairwiseLearner extends Learner {
     i++;
 
     // Add pagerank score
-    weights[i] = Util.functionV(V_NUM, d.page_rank, PR_LambdaPrime, PR_LambdaPrime2);
+    weights[i] = Util.functionV(V_NUM, d.page_rank, PR_LambdaPrime,
+        PR_LambdaPrime2);
     i++;
 
     // Add smallest window
     double window = -1.0;
     if (d.url != null)
-      window = Util.checkWindow(q, Util.join(d.url.split("[^a-z0-9]"), " "), tfQuery,
-          window);
+      window = Util.checkWindow(q, Util.join(d.url.split("[^a-z0-9]"), " "),
+          tfQuery, window);
     if (d.title != null)
       window = Util.checkWindow(q, d.title, tfQuery, window);
     if (d.headers != null)
@@ -420,6 +429,5 @@ public class PairwiseLearner extends Learner {
 
     return weights;
   }
-
 
 }

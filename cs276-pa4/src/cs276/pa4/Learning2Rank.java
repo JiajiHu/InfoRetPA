@@ -12,10 +12,13 @@ import java.util.List;
 import java.util.Map;
 
 import weka.classifiers.Classifier;
+import weka.core.Attribute;
 import weka.core.Instances;
 
 public class Learning2Rank {
-  
+
+  // std determines whether to use the right standardization
+  static boolean std = false;
   static boolean t2isLinearKernel = true;
   static double t2C;
   static double t2G;
@@ -26,8 +29,9 @@ public class Learning2Rank {
   static double t4C = 1.0;
   static double t4G = 0.2;
 
-  public static Pair<Classifier,ArrayList<Pair<Double,Double>>> train(String train_data_file, String train_rel_file,
-      int task, Map<String, Double> idfs) {
+  public static Pair<Classifier, ArrayList<Pair<Double, Double>>> train(
+      String train_data_file, String train_rel_file, int task,
+      Map<String, Double> idfs) {
     System.err.println("## Training with feature_file =" + train_data_file
         + ", rel_file = " + train_rel_file + " ... \n");
     Classifier model = null;
@@ -36,14 +40,14 @@ public class Learning2Rank {
     if (task == 1) {
       learner = new PointwiseLearner();
     } else if (task == 2) {
-      learner = new PairwiseLearner(t2isLinearKernel, false);
+      learner = new PairwiseLearner(t2isLinearKernel, false, !std);
       // learner = new PairwiseLearner(t2C, t2G, isLinearKernel);
     } else if (task == 3) {
-      learner = new PairwiseLearner(t3isLinearKernel, true);
+      learner = new PairwiseLearner(t3isLinearKernel, true, !std);
       // learner = new PairwiseLearner(t3C,t3G,isLinearKernel, true);
 
     } else if (task == 4) {
-//       learner = new SVMPointwiseLearner(t4C, t4G, t4isLinearKernel);
+      // learner = new SVMPointwiseLearner(t4C, t4G, t4isLinearKernel);
       learner = new SVMPointwiseLearner(t4isLinearKernel);
     }
 
@@ -51,20 +55,28 @@ public class Learning2Rank {
     Instances data = learner.extract_train_features(train_data_file,
         train_rel_file, idfs);
     Instances traindata = data;
-    ArrayList<Pair<Double,Double>> meanAndStdvar = new ArrayList<Pair<Double,Double>>();
+    ArrayList<Pair<Double, Double>> meanAndStdvar = new ArrayList<Pair<Double, Double>>();
     if (task == 2 || task == 3) {
-      Pair<Instances,ArrayList<Pair<Double,Double>>> afterStandard = Util.standardizeInstances(data);
+      ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+      if (task == 2)
+        attributes = PairwiseLearner.setAttributes();
+      else
+        attributes = PairwiseLearner.setAttributesTask3();
+      Pair<Instances, ArrayList<Pair<Double, Double>>> afterStandard = Util
+          .standardizeInstances(data, attributes);
       traindata = afterStandard.getFirst();
       meanAndStdvar = afterStandard.getSecond();
     }
     /* Step (2): implement your learning algorithm here */
     model = learner.training(traindata);
 
-    return new Pair<Classifier,ArrayList<Pair<Double,Double>>>(model,meanAndStdvar);
+    return new Pair<Classifier, ArrayList<Pair<Double, Double>>>(model,
+        meanAndStdvar);
   }
 
   public static Map<String, List<String>> test(String test_data_file,
-      Classifier model, int task, Map<String, Double> idfs, ArrayList<Pair<Double,Double>> meanAndStdvar) {
+      Classifier model, int task, Map<String, Double> idfs,
+      ArrayList<Pair<Double, Double>> meanAndStdvar) {
     System.err.println("## Testing with feature_file=" + test_data_file
         + " ... \n");
     Map<String, List<String>> ranked_queries = new HashMap<String, List<String>>();
@@ -72,23 +84,29 @@ public class Learning2Rank {
     if (task == 1) {
       learner = new PointwiseLearner();
     } else if (task == 2) {
-      learner = new PairwiseLearner(t2isLinearKernel, false);
+      learner = new PairwiseLearner(t2isLinearKernel, false, !std);
       // learner = new PairwiseLearner(t2C, t2G, isLinearKernel, false);
     } else if (task == 3) {
-      learner = new PairwiseLearner(t3isLinearKernel, true);
+      learner = new PairwiseLearner(t3isLinearKernel, true, !std);
       // learner = new PairwiseLearner(t3C, t3G, isLinearKernel,true);
     } else if (task == 4) {
       learner = new SVMPointwiseLearner(t4isLinearKernel);
-//       learner = new SVMPointwiseLearner(t4C, t4G, t4isLinearKernel);
+      // learner = new SVMPointwiseLearner(t4C, t4G, t4isLinearKernel);
     }
 
     /* Step (1): construct your test feature matrix here */
     TestFeatures tf = learner.extract_test_features(test_data_file, idfs);
 
-    if (task == 2 || task == 3){
-      tf.features = Util.standardizeWithFilter(tf.features, meanAndStdvar);      
+    if (task == 2 || task == 3) {
+      ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+      if (task == 2)
+        attributes = PairwiseLearner.setAttributes();
+      else
+        attributes = PairwiseLearner.setAttributesTask3();
+      tf.features = Util.standardizeWithFilter(tf.features, attributes,
+          meanAndStdvar);
     }
-    
+
     /* Step (2): implement your prediction and ranking code here */
     ranked_queries = learner.testing(tf, model);
 
@@ -138,7 +156,8 @@ public class Learning2Rank {
 
     /* Train & test */
     System.err.println("### Running task" + task + "...");
-    Pair<Classifier,ArrayList<Pair<Double,Double>>> model = train(train_data_file, train_rel_file, task, idfs);
+    Pair<Classifier, ArrayList<Pair<Double, Double>>> model = train(
+        train_data_file, train_rel_file, task, idfs);
 
     /* performance on the training data */
     Map<String, List<String>> trained_ranked_queries = test(train_data_file,
@@ -150,8 +169,8 @@ public class Learning2Rank {
     System.err.println("# Trained NDCG=" + ndcg.score(trainOutFile));
     (new File(trainOutFile)).delete();
 
-    Map<String, List<String>> ranked_queries = test(test_data_file, model.getFirst(),
-        task, idfs, model.getSecond());
+    Map<String, List<String>> ranked_queries = test(test_data_file,
+        model.getFirst(), task, idfs, model.getSecond());
 
     /* Output results */
     if (ranked_out_file.equals("")) { /* output to stdout */

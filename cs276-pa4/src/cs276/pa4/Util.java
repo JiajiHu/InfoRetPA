@@ -11,15 +11,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import weka.core.DenseInstance;
+import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.Attribute;
 
 public class Util {
-  public static Map<Query,List<Document>> loadTrainData (String feature_file_name) throws Exception {
+  public static Map<Query, List<Document>> loadTrainData(
+      String feature_file_name) throws Exception {
     Map<Query, List<Document>> result = new HashMap<Query, List<Document>>();
 
     File feature_file = new File(feature_file_name);
-    if (!feature_file.exists() ) {
+    if (!feature_file.exists()) {
       System.err.println("Invalid feature file name: " + feature_file_name);
       return null;
     }
@@ -28,13 +31,14 @@ public class Util {
     String line = null, anchor_text = null;
     Query query = null;
     Document doc = null;
-    int numQuery=0; int numDoc=0;
+    int numQuery = 0;
+    int numDoc = 0;
     while ((line = reader.readLine()) != null) {
       String[] tokens = line.split(":", 2);
       String key = tokens[0].trim();
       String value = tokens[1].trim();
 
-      if (key.equals("query")){
+      if (key.equals("query")) {
         query = new Query(value);
         numQuery++;
         result.put(query, new ArrayList<Document>());
@@ -45,10 +49,9 @@ public class Util {
         numDoc++;
       } else if (key.equals("title")) {
         doc.title = new String(value);
-      } else if (key.equals("header"))
-      {
+      } else if (key.equals("header")) {
         if (doc.headers == null)
-          doc.headers =  new ArrayList<String>();
+          doc.headers = new ArrayList<String>();
         doc.headers.add(value);
       } else if (key.equals("body_hits")) {
         if (doc.body_hits == null)
@@ -57,8 +60,7 @@ public class Util {
         String term = temp[0].trim();
         List<Integer> positions_int;
 
-        if (!doc.body_hits.containsKey(term))
-        {
+        if (!doc.body_hits.containsKey(term)) {
           positions_int = new ArrayList<Integer>();
           doc.body_hits.put(term, positions_int);
         } else
@@ -76,73 +78,76 @@ public class Util {
         anchor_text = value;
         if (doc.anchors == null)
           doc.anchors = new HashMap<String, Integer>();
-      }
-      else if (key.equals("stanford_anchor_count"))
-        doc.anchors.put(anchor_text, Integer.parseInt(value));      
+      } else if (key.equals("stanford_anchor_count"))
+        doc.anchors.put(anchor_text, Integer.parseInt(value));
     }
 
     reader.close();
-    System.err.println("# Signal file " + feature_file_name + ": number of queries=" + numQuery + ", number of documents=" + numDoc);
+    System.err
+        .println("# Signal file " + feature_file_name + ": number of queries="
+            + numQuery + ", number of documents=" + numDoc);
 
     return result;
   }
 
-  public static Map<String,Double> loadDFs(String dfFile) throws IOException {
-    Map<String,Double> dfs = new HashMap<String, Double>();
+  public static Map<String, Double> loadDFs(String dfFile) throws IOException {
+    Map<String, Double> dfs = new HashMap<String, Double>();
     double totalDocCount = 98998;
     BufferedReader br = new BufferedReader(new FileReader(dfFile));
     String line;
-    while((line=br.readLine())!=null){
+    while ((line = br.readLine()) != null) {
       line = line.trim();
-      if(line.equals("")) continue;
+      if (line.equals(""))
+        continue;
       String[] tokens = line.split("\\s+");
       dfs.put(tokens[0], Double.parseDouble(tokens[1]));
     }
     br.close();
-    
+
     for (String term : dfs.keySet()) {
-      dfs.put(term,
-          Math.log((totalDocCount + 1) / (dfs.get(term) + 1.0)));
+      dfs.put(term, Math.log((totalDocCount + 1) / (dfs.get(term) + 1.0)));
     }
     dfs.put("unseen term", Math.log((totalDocCount + 1.0)));
-    
+
     return dfs;
   }
 
   /* query -> (url -> score) */
-  public static Map<String, Map<String, Double>> loadRelData(String rel_file_name) throws IOException{
+  public static Map<String, Map<String, Double>> loadRelData(
+      String rel_file_name) throws IOException {
     Map<String, Map<String, Double>> result = new HashMap<String, Map<String, Double>>();
 
     File rel_file = new File(rel_file_name);
-    if (!rel_file.exists() ) {
+    if (!rel_file.exists()) {
       System.err.println("Invalid feature file name: " + rel_file_name);
       return null;
     }
 
     BufferedReader reader = new BufferedReader(new FileReader(rel_file));
     String line = null, query = null, url = null;
-    int numQuery=0; 
-    int numDoc=0;
+    int numQuery = 0;
+    int numDoc = 0;
     while ((line = reader.readLine()) != null) {
       String[] tokens = line.split(":", 2);
       String key = tokens[0].trim();
       String value = tokens[1].trim();
 
-      if (key.equals("query")){
+      if (key.equals("query")) {
         query = value;
         result.put(query, new HashMap<String, Double>());
         numQuery++;
-      } else if (key.equals("url")){
+      } else if (key.equals("url")) {
         String[] tmps = value.split(" ", 2);
         url = tmps[0].trim();
         double score = Double.parseDouble(tmps[1].trim());
         result.get(query).put(url, score);
         numDoc++;
       }
-    }	
+    }
     reader.close();
-    System.err.println("# Rel file " + rel_file_name + ": number of queries=" + numQuery + ", number of documents=" + numDoc);
-    
+    System.err.println("# Rel file " + rel_file_name + ": number of queries="
+        + numQuery + ", number of documents=" + numDoc);
+
     return result;
   }
 
@@ -153,7 +158,7 @@ public class Util {
       e.printStackTrace();
     }
   }
-  
+
   public static Map<String, Double> getQueryFreqs(Query q, boolean subLinear) {
     Map<String, Double> tfQuery = new HashMap<String, Double>();
     for (String word : q.words) {
@@ -165,7 +170,8 @@ public class Util {
     }
     if (subLinear) {
       for (String word : tfQuery.keySet()) {
-        tfQuery.put(word.toLowerCase(), 1.0 + Math.log(tfQuery.get(word.toLowerCase())));
+        tfQuery.put(word.toLowerCase(),
+            1.0 + Math.log(tfQuery.get(word.toLowerCase())));
       }
     }
     return tfQuery;
@@ -241,8 +247,8 @@ public class Util {
     return b_tf;
   }
 
-  public static Map<Field, Map<String, Double>> getDocTermFreqs(Document d, Query q,
-      boolean subLinear) {
+  public static Map<Field, Map<String, Double>> getDocTermFreqs(Document d,
+      Query q, boolean subLinear) {
     Map<Field, Map<String, Double>> tfs = new HashMap<Field, Map<String, Double>>();
     Map<Field, Map<String, Double>> q_tfs = new HashMap<Field, Map<String, Double>>();
 
@@ -270,9 +276,10 @@ public class Util {
     }
     return q_tfs;
   }
+
   // Helper functions for smallest window
-  public static double checkWindow(Query q, String docstr, Map<String, Double> target,
-      double curSmallestWindow) {
+  public static double checkWindow(Query q, String docstr,
+      Map<String, Double> target, double curSmallestWindow) {
     String[] str = docstr.split("[^a-z0-9]");
     Map<String, Double> current = new HashMap<String, Double>();
     double window = curSmallestWindow;
@@ -377,8 +384,9 @@ public class Util {
   }
 
   // Helper functions for BM25
-  public static void normalizeBM25TFs(Map<Field, Map<String, Double>> tfs, Document d,
-      Query q, double[] lengths, double[] B_WEIGHTS, double[] avgLengths) {
+  public static void normalizeBM25TFs(Map<Field, Map<String, Double>> tfs,
+      Document d, Query q, double[] lengths, double[] B_WEIGHTS,
+      double[] avgLengths) {
     Field[] fields = Field.values();
     for (int i = 0; i < fields.length; i++) {
       Field field = fields[i];
@@ -455,19 +463,68 @@ public class Util {
     }
     return result;
   }
-  
-  public static Pair<Instances,ArrayList<Pair<Double,Double>>> standardizeInstances(Instances input){
-    ArrayList<Attribute> attributes = Collections.list(input.enumerateAttributes());
+
+  public static Pair<Instances, ArrayList<Pair<Double, Double>>> standardizeInstances(
+      Instances input, ArrayList<Attribute> attributes) {
     Instances output = new Instances("train_dataset", attributes, 0);
-    ArrayList<Pair<Double,Double>> meanAndStdvar = new ArrayList<Pair<Double,Double>>();
-    
-    return new Pair<Instances,ArrayList<Pair<Double,Double>>>(output,meanAndStdvar);
-  }
+    ArrayList<Pair<Double, Double>> meanAndStdvar = new ArrayList<Pair<Double, Double>>();
+    double[] sum = new double[attributes.size() - 1];
+    double[] var = new double[attributes.size() - 1];
+
+    for (int i = 0; i < input.size(); i++) {
+      double[] ins = input.get(i).toDoubleArray();
+      for (int j = 0; j < attributes.size() - 1; j++) {
+        sum[j] += ins[j];
+      }
+    }
+    for (int j = 0; j < attributes.size() - 1; j++) {
+      sum[j] = sum[j]/input.size();
+    }
+    for (int i = 0; i < input.size(); i++) {
+      double[] ins = input.get(i).toDoubleArray();
+      for (int j = 0; j < attributes.size() - 1; j++) {
+        var[j] += Math.pow(ins[j]-sum[j],2);
+      }
+    }
+    for (int j = 0; j < attributes.size() - 1; j++) {
+      var[j] = Math.sqrt(var[j]/input.size());
+    }
+    for (int j = 0; j < attributes.size() - 1; j++) {
+      meanAndStdvar.add(new Pair<Double,Double>(sum[j],var[j]));
+    }
+    for (int i = 0; i < input.size(); i++) {
+      double[] ins = input.get(i).toDoubleArray();
+      double[] instance = new double[attributes.size()];
+      for (int j = 0; j < attributes.size() - 1; j++) {
+        instance[j] = (ins[j]-sum[j])/var[j];
+      }
+      instance[attributes.size()-1] = ins[attributes.size()-1];
+      Instance inst = new DenseInstance(1.0, instance);
+      output.add(inst);
+    }    
   
-  public static Instances standardizeWithFilter(Instances input, ArrayList<Pair<Double,Double>> meanAndStdvar){
-    ArrayList<Attribute> attributes = Collections.list(input.enumerateAttributes());
+    output.setClassIndex(output.numAttributes() - 1);
+
+    return new Pair<Instances, ArrayList<Pair<Double, Double>>>(output,
+        meanAndStdvar);
+  }
+
+  public static Instances standardizeWithFilter(Instances input, ArrayList<Attribute> attributes,
+      ArrayList<Pair<Double, Double>> meanAndStdvar) {
     Instances output = new Instances("test_dataset", attributes, 0);
-    
+    for (int i = 0; i < input.size(); i++) {
+      double[] ins = input.get(i).toDoubleArray();
+      double[] instance = new double[attributes.size()];
+      for (int j = 0; j < attributes.size() - 1; j++) {
+        instance[j] = (ins[j]-meanAndStdvar.get(j).getFirst())/meanAndStdvar.get(j).getSecond();
+      }
+      instance[attributes.size()-1] = ins[attributes.size()-1];
+      Instance inst = new DenseInstance(1.0, instance);
+      output.add(inst);
+    }    
+  
+    output.setClassIndex(output.numAttributes() - 1);
+
     return output;
   }
 
