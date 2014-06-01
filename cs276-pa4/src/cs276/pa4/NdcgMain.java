@@ -84,6 +84,6 @@ public class NdcgMain {
 		String rankedFile = args[0];
 		String relFile = args[1];
 		NdcgMain ndcg = new NdcgMain(relFile);
-		System.err.println(ndcg.score(rankedFile));
+		System.err.println("GridSearch: "+ndcg.score(rankedFile));
 	}
 }

@@ -20,18 +20,19 @@ public class Learning2Rank {
   // std determines whether to use the right standardization
   static boolean std = false;
   static boolean t2isLinearKernel = true;
-  static double t2C;
-  static double t2G;
+  // static double t2C;
+  // static double t2G;
   static boolean t3isLinearKernel = true;
-  static double t3C;
-  static double t3G;
+  // static double t3C;
+  // static double t3G;
   static boolean t4isLinearKernel = true;
-  static double t4C = 1.0;
-  static double t4G = 0.2;
+
+  // static double t4C = 1.0;
+  // static double t4G = 0.2;
 
   public static Pair<Classifier, ArrayList<Pair<Double, Double>>> train(
       String train_data_file, String train_rel_file, int task,
-      Map<String, Double> idfs) {
+      Map<String, Double> idfs, double C, double gamma) {
     System.err.println("## Training with feature_file =" + train_data_file
         + ", rel_file = " + train_rel_file + " ... \n");
     Classifier model = null;
@@ -40,15 +41,15 @@ public class Learning2Rank {
     if (task == 1) {
       learner = new PointwiseLearner();
     } else if (task == 2) {
-      learner = new PairwiseLearner(t2isLinearKernel, false, !std);
-      // learner = new PairwiseLearner(t2C, t2G, isLinearKernel, !std);
+      // learner = new PairwiseLearner(t2isLinearKernel, false, !std);
+      learner = new PairwiseLearner(C, gamma, t2isLinearKernel, false, !std);
     } else if (task == 3) {
-      learner = new PairwiseLearner(t3isLinearKernel, true, !std);
-      // learner = new PairwiseLearner(t3C,t3G,isLinearKernel, true, !std);
+      // learner = new PairwiseLearner(t3isLinearKernel, true, !std);
+      learner = new PairwiseLearner(C, gamma, t3isLinearKernel, true, !std);
 
     } else if (task == 4) {
-      // learner = new SVMPointwiseLearner(t4C, t4G, t4isLinearKernel, !std);
-      learner = new SVMPointwiseLearner(t4isLinearKernel, !std);
+      // learner = new SVMPointwiseLearner(t4isLinearKernel, !std);
+      learner = new SVMPointwiseLearner(C, gamma, t4isLinearKernel, !std);
     }
 
     /* Step (1): construct your feature matrix here */
@@ -78,7 +79,7 @@ public class Learning2Rank {
 
   public static Map<String, List<String>> test(String test_data_file,
       Classifier model, int task, Map<String, Double> idfs,
-      ArrayList<Pair<Double, Double>> meanAndStdvar) {
+      ArrayList<Pair<Double, Double>> meanAndStdvar, double C, double gamma) {
     System.err.println("## Testing with feature_file=" + test_data_file
         + " ... \n");
     Map<String, List<String>> ranked_queries = new HashMap<String, List<String>>();
@@ -90,7 +91,7 @@ public class Learning2Rank {
       // learner = new PairwiseLearner(t2C, t2G, isLinearKernel, false, !std);
     } else if (task == 3) {
       learner = new PairwiseLearner(t3isLinearKernel, true, !std);
-//      learner = new PairwiseLearner(t3C, t3G, isLinearKernel, true, !std);
+      // learner = new PairwiseLearner(t3C, t3G, isLinearKernel, true, !std);
     } else if (task == 4) {
       learner = new SVMPointwiseLearner(t4isLinearKernel, !std);
       // learner = new SVMPointwiseLearner(t4C, t4G, t4isLinearKernel, !std);
@@ -130,10 +131,10 @@ public class Learning2Rank {
   }
 
   public static void main(String[] args) throws IOException {
-    if (args.length != 4 && args.length != 5) {
+    if (args.length != 6 && args.length != 7) {
       System.err.println("Input arguments: " + Arrays.toString(args));
       System.err
-          .println("Usage: <train_data_file> <train_data_file> <test_data_file> <task> [ranked_out_file]");
+          .println("Usage: <train_data_file> <train_data_file> <test_data_file> <task> <C> <gamma> [ranked_out_file]");
       System.err
           .println("  ranked_out_file (optional): output results are written into the specified file. "
               + "If not, output to stdout.");
@@ -144,9 +145,11 @@ public class Learning2Rank {
     String train_rel_file = args[1];
     String test_data_file = args[2];
     int task = Integer.parseInt(args[3]);
+    double C = Double.parseDouble(args[4]);
+    double gamma = Double.parseDouble(args[5]);
     String ranked_out_file = "";
-    if (args.length == 5) {
-      ranked_out_file = args[4];
+    if (args.length == 7) {
+      ranked_out_file = args[6];
     }
 
     /* Populate idfs */
@@ -161,11 +164,11 @@ public class Learning2Rank {
     /* Train & test */
     System.err.println("### Running task" + task + "...");
     Pair<Classifier, ArrayList<Pair<Double, Double>>> model = train(
-        train_data_file, train_rel_file, task, idfs);
+        train_data_file, train_rel_file, task, idfs, C, gamma);
 
     /* performance on the training data */
     Map<String, List<String>> trained_ranked_queries = test(train_data_file,
-        model.getFirst(), task, idfs, model.getSecond());
+        model.getFirst(), task, idfs, model.getSecond(), C, gamma);
     String trainOutFile = "tmp.train.ranked";
     writeRankedResultsToFile(trained_ranked_queries, new PrintStream(
         new FileOutputStream(trainOutFile)));
@@ -174,7 +177,7 @@ public class Learning2Rank {
     (new File(trainOutFile)).delete();
 
     Map<String, List<String>> ranked_queries = test(test_data_file,
-        model.getFirst(), task, idfs, model.getSecond());
+        model.getFirst(), task, idfs, model.getSecond(), C, gamma);
 
     /* Output results */
     if (ranked_out_file.equals("")) { /* output to stdout */
