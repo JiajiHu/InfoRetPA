@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import weka.core.Instances;
+import weka.core.Attribute;
 
 public class Util {
   public static Map<Query,List<Document>> loadTrainData (String feature_file_name) throws Exception {
@@ -452,6 +454,21 @@ public class Util {
       result += map.get(key);
     }
     return result;
+  }
+  
+  public static Pair<Instances,ArrayList<Pair<Double,Double>>> standardizeInstances(Instances input){
+    ArrayList<Attribute> attributes = Collections.list(input.enumerateAttributes());
+    Instances output = new Instances("train_dataset", attributes, 0);
+    ArrayList<Pair<Double,Double>> meanAndStdvar = new ArrayList<Pair<Double,Double>>();
+    
+    return new Pair<Instances,ArrayList<Pair<Double,Double>>>(output,meanAndStdvar);
+  }
+  
+  public static Instances standardizeWithFilter(Instances input, ArrayList<Pair<Double,Double>> meanAndStdvar){
+    ArrayList<Attribute> attributes = Collections.list(input.enumerateAttributes());
+    Instances output = new Instances("test_dataset", attributes, 0);
+    
+    return output;
   }
 
 }

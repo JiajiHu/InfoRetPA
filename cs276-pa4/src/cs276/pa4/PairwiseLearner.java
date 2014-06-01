@@ -108,16 +108,18 @@ public class PairwiseLearner extends Learner {
       }
     }
 
-    // normalize feature matrix
-    Instances new_data = null;
-    Standardize filter = new Standardize();
-    try {
-      filter.setInputFormat(dataset);
-      new_data = Filter.useFilter(dataset, filter);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+//    // normalize feature matrix
+//    Instances new_data = null;
+//    Standardize filter = new Standardize();
+//    try {
+//      filter.setInputFormat(dataset);
+//      new_data = Filter.useFilter(dataset, filter);
+//    } catch (Exception e) {
+//      e.printStackTrace();
+//    }
 
+    Instances new_data = dataset;
+    
     Instances trainset = null;
     trainset = new Instances("train_dataset", attributes, 0);
     for (Query q : trainData.keySet()) {
@@ -168,6 +170,7 @@ public class PairwiseLearner extends Learner {
         }
       }
     }
+
     /* Set last attribute as target */
     trainset.setClassIndex(trainset.numAttributes() - 1);
 
@@ -217,14 +220,14 @@ public class PairwiseLearner extends Learner {
         index++;
       }
     }
-    Instances new_data = null;
-    Standardize filter = new Standardize();
-    try {
-      filter.setInputFormat(dataset);
-      new_data = Filter.useFilter(dataset, filter);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    Instances new_data = dataset;
+//    Standardize filter = new Standardize();
+//    try {
+//      filter.setInputFormat(dataset);
+//      new_data = Filter.useFilter(dataset, filter);
+//    } catch (Exception e) {
+//      e.printStackTrace();
+//    }
     new_data.setClassIndex(new_data.numAttributes() - 1);
     testFeatures.features = new_data;
     testFeatures.index_map = map;

@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -14,7 +15,7 @@ import weka.classifiers.Classifier;
 import weka.core.Instances;
 
 public class Learning2Rank {
-
+  
   static boolean t2isLinearKernel = true;
   static double t2C;
   static double t2G;
@@ -25,7 +26,7 @@ public class Learning2Rank {
   static double t4C = 1.0;
   static double t4G = 0.2;
 
-  public static Classifier train(String train_data_file, String train_rel_file,
+  public static Pair<Classifier,ArrayList<Pair<Double,Double>>> train(String train_data_file, String train_rel_file,
       int task, Map<String, Double> idfs) {
     System.err.println("## Training with feature_file =" + train_data_file
         + ", rel_file = " + train_rel_file + " ... \n");
@@ -49,15 +50,21 @@ public class Learning2Rank {
     /* Step (1): construct your feature matrix here */
     Instances data = learner.extract_train_features(train_data_file,
         train_rel_file, idfs);
-
+    Instances traindata = data;
+    ArrayList<Pair<Double,Double>> meanAndStdvar = new ArrayList<Pair<Double,Double>>();
+    if (task == 2 || task == 3) {
+      Pair<Instances,ArrayList<Pair<Double,Double>>> afterStandard = Util.standardizeInstances(data);
+      traindata = afterStandard.getFirst();
+      meanAndStdvar = afterStandard.getSecond();
+    }
     /* Step (2): implement your learning algorithm here */
-    model = learner.training(data);
+    model = learner.training(traindata);
 
-    return model;
+    return new Pair<Classifier,ArrayList<Pair<Double,Double>>>(model,meanAndStdvar);
   }
 
   public static Map<String, List<String>> test(String test_data_file,
-      Classifier model, int task, Map<String, Double> idfs) {
+      Classifier model, int task, Map<String, Double> idfs, ArrayList<Pair<Double,Double>> meanAndStdvar) {
     System.err.println("## Testing with feature_file=" + test_data_file
         + " ... \n");
     Map<String, List<String>> ranked_queries = new HashMap<String, List<String>>();
@@ -78,6 +85,10 @@ public class Learning2Rank {
     /* Step (1): construct your test feature matrix here */
     TestFeatures tf = learner.extract_test_features(test_data_file, idfs);
 
+    if (task == 2 || task == 3){
+      tf.features = Util.standardizeWithFilter(tf.features, meanAndStdvar);      
+    }
+    
     /* Step (2): implement your prediction and ranking code here */
     ranked_queries = learner.testing(tf, model);
 
@@ -127,11 +138,11 @@ public class Learning2Rank {
 
     /* Train & test */
     System.err.println("### Running task" + task + "...");
-    Classifier model = train(train_data_file, train_rel_file, task, idfs);
+    Pair<Classifier,ArrayList<Pair<Double,Double>>> model = train(train_data_file, train_rel_file, task, idfs);
 
     /* performance on the training data */
     Map<String, List<String>> trained_ranked_queries = test(train_data_file,
-        model, task, idfs);
+        model.getFirst(), task, idfs, model.getSecond());
     String trainOutFile = "tmp.train.ranked";
     writeRankedResultsToFile(trained_ranked_queries, new PrintStream(
         new FileOutputStream(trainOutFile)));
@@ -139,8 +150,8 @@ public class Learning2Rank {
     System.err.println("# Trained NDCG=" + ndcg.score(trainOutFile));
     (new File(trainOutFile)).delete();
 
-    Map<String, List<String>> ranked_queries = test(test_data_file, model,
-        task, idfs);
+    Map<String, List<String>> ranked_queries = test(test_data_file, model.getFirst(),
+        task, idfs, model.getSecond());
 
     /* Output results */
     if (ranked_out_file.equals("")) { /* output to stdout */
