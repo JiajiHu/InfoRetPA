@@ -41,14 +41,14 @@ public class Learning2Rank {
       learner = new PointwiseLearner();
     } else if (task == 2) {
       learner = new PairwiseLearner(t2isLinearKernel, false, !std);
-      // learner = new PairwiseLearner(t2C, t2G, isLinearKernel);
+      // learner = new PairwiseLearner(t2C, t2G, isLinearKernel, !std);
     } else if (task == 3) {
       learner = new PairwiseLearner(t3isLinearKernel, true, !std);
-      // learner = new PairwiseLearner(t3C,t3G,isLinearKernel, true);
+      // learner = new PairwiseLearner(t3C,t3G,isLinearKernel, true, !std);
 
     } else if (task == 4) {
-      // learner = new SVMPointwiseLearner(t4C, t4G, t4isLinearKernel);
-      learner = new SVMPointwiseLearner(t4isLinearKernel);
+      // learner = new SVMPointwiseLearner(t4C, t4G, t4isLinearKernel, !std);
+      learner = new SVMPointwiseLearner(t4isLinearKernel, !std);
     }
 
     /* Step (1): construct your feature matrix here */
@@ -56,12 +56,14 @@ public class Learning2Rank {
         train_rel_file, idfs);
     Instances traindata = data;
     ArrayList<Pair<Double, Double>> meanAndStdvar = new ArrayList<Pair<Double, Double>>();
-    if (task == 2 || task == 3) {
+    if (task != 1 && std) {
       ArrayList<Attribute> attributes = new ArrayList<Attribute>();
       if (task == 2)
         attributes = PairwiseLearner.setAttributes();
-      else
+      else if (task == 3)
         attributes = PairwiseLearner.setAttributesTask3();
+      else
+        attributes = SVMPointwiseLearner.setAttributes();
       Pair<Instances, ArrayList<Pair<Double, Double>>> afterStandard = Util
           .standardizeInstances(data, attributes);
       traindata = afterStandard.getFirst();
@@ -85,24 +87,26 @@ public class Learning2Rank {
       learner = new PointwiseLearner();
     } else if (task == 2) {
       learner = new PairwiseLearner(t2isLinearKernel, false, !std);
-      // learner = new PairwiseLearner(t2C, t2G, isLinearKernel, false);
+      // learner = new PairwiseLearner(t2C, t2G, isLinearKernel, false, !std);
     } else if (task == 3) {
       learner = new PairwiseLearner(t3isLinearKernel, true, !std);
-      // learner = new PairwiseLearner(t3C, t3G, isLinearKernel,true);
+//      learner = new PairwiseLearner(t3C, t3G, isLinearKernel, true, !std);
     } else if (task == 4) {
-      learner = new SVMPointwiseLearner(t4isLinearKernel);
-      // learner = new SVMPointwiseLearner(t4C, t4G, t4isLinearKernel);
+      learner = new SVMPointwiseLearner(t4isLinearKernel, !std);
+      // learner = new SVMPointwiseLearner(t4C, t4G, t4isLinearKernel, !std);
     }
 
     /* Step (1): construct your test feature matrix here */
     TestFeatures tf = learner.extract_test_features(test_data_file, idfs);
 
-    if (task == 2 || task == 3) {
+    if (task != 1 && std) {
       ArrayList<Attribute> attributes = new ArrayList<Attribute>();
       if (task == 2)
         attributes = PairwiseLearner.setAttributes();
-      else
+      else if (task == 3)
         attributes = PairwiseLearner.setAttributesTask3();
+      else
+        attributes = SVMPointwiseLearner.setAttributes();
       tf.features = Util.standardizeWithFilter(tf.features, attributes,
           meanAndStdvar);
     }

@@ -25,14 +25,16 @@ public class SVMPointwiseLearner extends Learner {
   // NOTE: len_normalize a lot better!
   private final boolean len_normalize = true;
   private final double nor_len = 500;
+  private boolean isStd;
 
-  public SVMPointwiseLearner(boolean isLinearKernel) {
+  public SVMPointwiseLearner(boolean isLinearKernel, boolean std) {
     try {
       model = new LibSVM();
     } catch (Exception e) {
       e.printStackTrace();
     }
 
+    isStd = std;
     model.setSVMType(new SelectedTag(3, LibSVM.TAGS_SVMTYPE));
 
     if (isLinearKernel) {
@@ -41,13 +43,15 @@ public class SVMPointwiseLearner extends Learner {
     }
   }
 
-  public SVMPointwiseLearner(double C, double gamma, boolean isLinearKernel) {
+  public SVMPointwiseLearner(double C, double gamma, boolean isLinearKernel,
+      boolean std) {
     try {
       model = new LibSVM();
     } catch (Exception e) {
       e.printStackTrace();
     }
 
+    isStd = std;
     model.setCost(C);
     model.setGamma(gamma); // only matter for RBF kernel
     model.setSVMType(new SelectedTag(3, LibSVM.TAGS_SVMTYPE));
@@ -73,13 +77,7 @@ public class SVMPointwiseLearner extends Learner {
     }
 
     /* Build attributes list */
-    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
-    attributes.add(new Attribute("url_w"));
-    attributes.add(new Attribute("title_w"));
-    attributes.add(new Attribute("body_w"));
-    attributes.add(new Attribute("header_w"));
-    attributes.add(new Attribute("anchor_w"));
-    attributes.add(new Attribute("relevance_score"));
+    ArrayList<Attribute> attributes = setAttributes();
     dataset = new Instances("train_dataset", attributes, 0);
 
     /* Add data */
@@ -116,13 +114,15 @@ public class SVMPointwiseLearner extends Learner {
       }
     }
 
-    Instances new_data = null;
-    Standardize filter = new Standardize();
-    try {
-      filter.setInputFormat(dataset);
-      new_data = Filter.useFilter(dataset, filter);
-    } catch (Exception e) {
-      e.printStackTrace();
+    Instances new_data = dataset;
+    if (isStd) {
+      Standardize filter = new Standardize();
+      try {
+        filter.setInputFormat(dataset);
+        new_data = Filter.useFilter(dataset, filter);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
 
     /* Set last attribute as target */
@@ -157,13 +157,7 @@ public class SVMPointwiseLearner extends Learner {
     }
 
     /* Build attributes list */
-    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
-    attributes.add(new Attribute("url_w"));
-    attributes.add(new Attribute("title_w"));
-    attributes.add(new Attribute("body_w"));
-    attributes.add(new Attribute("header_w"));
-    attributes.add(new Attribute("anchor_w"));
-    attributes.add(new Attribute("relevance_score"));
+    ArrayList<Attribute> attributes = setAttributes();
     dataset = new Instances("test_dataset", attributes, 0);
 
     /* Add data */
@@ -201,13 +195,15 @@ public class SVMPointwiseLearner extends Learner {
       }
     }
 
-    Instances new_data = null;
-    Standardize filter = new Standardize();
-    try {
-      filter.setInputFormat(dataset);
-      new_data = Filter.useFilter(dataset, filter);
-    } catch (Exception e) {
-      e.printStackTrace();
+    Instances new_data = dataset;
+    if (isStd) {
+      Standardize filter = new Standardize();
+      try {
+        filter.setInputFormat(dataset);
+        new_data = Filter.useFilter(dataset, filter);
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
     }
     new_data.setClassIndex(new_data.numAttributes() - 1);
 
@@ -258,6 +254,17 @@ public class SVMPointwiseLearner extends Learner {
       results.put(query, curRankings);
     }
     return results;
+  }
+  
+  public static ArrayList<Attribute> setAttributes() {
+    ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+    attributes.add(new Attribute("url_w"));
+    attributes.add(new Attribute("title_w"));
+    attributes.add(new Attribute("body_w"));
+    attributes.add(new Attribute("header_w"));
+    attributes.add(new Attribute("anchor_w"));
+    attributes.add(new Attribute("relevance_score"));
+    return attributes;
   }
 
 }
