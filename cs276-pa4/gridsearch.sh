@@ -1,6 +1,6 @@
 #!/bin/bash
 
-Task="2"
+Task="3"
 C="1.0"
 Gamma="0.2"
 for numC in {0..6}
@@ -21,7 +21,7 @@ do
 		C="2000"
 	fi
 
-	for numG in {0..6}
+	for numG in {6}
 		do
 			if [ $numG == 0 ]; then
 				Gamma="0.0000002"
