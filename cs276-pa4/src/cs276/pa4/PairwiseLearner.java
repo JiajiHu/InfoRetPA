@@ -325,6 +325,17 @@ public class PairwiseLearner extends Learner {
     attributes.add(new Attribute("bm25"));
     attributes.add(new Attribute("pagerank"));
     attributes.add(new Attribute("smallest_window"));
+    attributes.add(new Attribute("log_body_length"));
+    attributes.add(new Attribute("numfields"));
+    attributes.add(new Attribute("numqueries"));
+    // attributes.add(new Attribute("log_url_len"));
+    attributes.add(new Attribute("url_num_words"));
+    // attributes.add(new Attribute("url_num_segments"));
+//    attributes.add(new Attribute("url_~"));
+    // attributes.add(new Attribute("url_?"));
+    // attributes.add(new Attribute("url_="));
+    attributes.add(new Attribute("pdf"));
+    attributes.add(new Attribute("ppt"));
 
     ArrayList<String> labels = new ArrayList<String>();
     labels.add("0");
@@ -426,8 +437,78 @@ public class PairwiseLearner extends Learner {
       window = Util.checkBodyWindow(q, tfQuery, d.body_hits, window);
 
     weights[i] = Util.functionW(W_NUM, window, q.words.size());
+    i++;
 
+    // body length
+    weights[i] = Math.log(nor_len + d.body_length);
+    i++;
+
+    // number of fields seen
+    double field = 0.0;
+    for (int j = 0; j < 5; j++) {
+      if (weights[j] != 0)
+        field += 1.0;
+    }
+    weights[i] = field;
+    i++;
+
+    // number of query terms not seen
+    double qs = Util.getSeenQuery(tfs, tfQuery);
+    weights[i] = qs;
+    i++;
+
+    // // url length -- not good
+    // double url_len = Math.log(d.url.length());
+    // weights[i] = url_len;
+    // i++;
+
+    // url num words
+    double url_words = d.url.split("[^a-z0-9]").length;
+    weights[i] = Math.log(Math.max(url_words - 4.5, 1));
+    i++;
+
+    // // url num segments -- no difference, may need tweaking
+    // double url_segs = d.url.split("/").length;
+    // weights[i] = Math.pow(Math.abs(url_segs-1),2);
+    // i++;
+
+    String url;
+    // // url number of ~
+    // url = d.url;
+    // double tilde = url.length() - url.replace("~", "").length();
+    // weights[i] = tilde;
+    // i++;
+
+    // // url number of ?
+    // url = d.url;
+    // double qmark = url.length() - url.replace("?","").length();
+    // weights[i] = qmark;
+    // i++;
+    //
+    // // url number of =
+    // url = d.url;
+    // double eq = url.length() - url.replace("=","").length();
+    // weights[i] = eq;
+    // i++;
+
+    // is pdf file
+    url = d.url;
+    double pdf = 0.0;
+    if (url.endsWith("pdf"))
+      pdf = 1;
+    weights[i] = pdf;
+    i++;
+   
+    // is ppt file
+    url = d.url;
+    double ppt = 0.0;
+    if (url.endsWith("ppt"))
+      ppt = 1;
+    weights[i] = ppt;
+    i++;
+    
     return weights;
+
   }
 
 }
