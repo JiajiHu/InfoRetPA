@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -527,5 +528,21 @@ public class Util {
 
     return output;
   }
+  
+  public static double getSeenQuery(Map<Field, Map<String, Double>> tfs,
+      Map<String, Double> qtf) {
+    double seen = 0;
+    for (String qword : qtf.keySet()) {
+      for (Field field : Field.values()) {
+        if (tfs.get(field).get(qword) > 0) {
+          seen += 1;
+          break;
+        }
+      }
+    }
+    return seen;
+  }
+
+
 
 }

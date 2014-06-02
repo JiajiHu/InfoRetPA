@@ -325,7 +325,9 @@ public class PairwiseLearner extends Learner {
     attributes.add(new Attribute("bm25"));
     attributes.add(new Attribute("pagerank"));
     attributes.add(new Attribute("smallest_window"));
-
+    attributes.add(new Attribute("log_body_length"));
+    attributes.add(new Attribute("numfields"));
+    attributes.add(new Attribute("numqueries"));
     ArrayList<String> labels = new ArrayList<String>();
     labels.add("0");
     labels.add("1");
@@ -426,8 +428,30 @@ public class PairwiseLearner extends Learner {
       window = Util.checkBodyWindow(q, tfQuery, d.body_hits, window);
 
     weights[i] = Util.functionW(W_NUM, window, q.words.size());
+    i++;
+    
+    // body length
+    weights[i] = Math.log(nor_len + d.body_length);
+    i++;
+    
+    // number of fields seen
+    double field = 0.0;
+    for (int j=0;j<5;j++){
+      if(weights[j]!=0)
+        field += 1.0;
+    }
+    weights[i] = field;
+    i++;
 
+    // number of query terms not seen
+    double qs = Util.getSeenQuery(tfs, tfQuery);
+    weights[i] = qs;
+    i++;
+
+    
+    
     return weights;
+  
   }
 
 }
