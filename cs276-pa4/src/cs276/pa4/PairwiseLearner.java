@@ -27,7 +27,7 @@ public class PairwiseLearner extends Learner {
   private final boolean sublinear = true;
   // NOTE: len_normalize a lot better!
   private final boolean len_normalize = true;
-  private final double nor_len = 500;
+  private final double nor_len = 550;
   private ArrayList<Attribute> attributes;
   private boolean task3;
   private boolean isStd;
@@ -331,7 +331,7 @@ public class PairwiseLearner extends Learner {
     // attributes.add(new Attribute("log_url_len"));
     attributes.add(new Attribute("url_num_words"));
     // attributes.add(new Attribute("url_num_segments"));
-//    attributes.add(new Attribute("url_~"));
+    attributes.add(new Attribute("url_~"));
 //     attributes.add(new Attribute("url_?"));
 //     attributes.add(new Attribute("url_="));
     attributes.add(new Attribute("pdf"));
@@ -473,11 +473,13 @@ public class PairwiseLearner extends Learner {
     // i++;
 
     String url;
-    // // url number of ~
-    // url = d.url;
-    // double tilde = url.length() - url.replace("~", "").length();
-    // weights[i] = tilde;
-    // i++;
+     // url number of ~
+     url = d.url;
+     double tilde = 0;
+     if (url.contains("~") && weights[0] != 0)
+       tilde = 1;
+     weights[i] = tilde;
+     i++;
 
     // // url number of ?
     // url = d.url;

@@ -62,18 +62,26 @@ Then, we tried combinations of two extra features. BM25F in combination with Pag
 
 From all this, it seems that the smallest window score is least useful, while BM25F is best, and PageRank is also good. This could mean that we just didn't come up with a good function to utilize the smallest window score.
 
-Next, we take a look at the ranking output of our system and do error analysis. A sample output is shown below (we show the given relevance scores for each document to highlight errors).
-\begin{verbatim}
+Next, we take a look at the ranking output of our system and do some error analysis. Below are a few examples that lead us to design some new features:
 
-\end{verbatim}
-We see two mistakes in the above ranking. 
+For the query \texttt{climbing wall hours}, our system ranked \texttt{http://www.stanford.edu/$\sim$clint/index/} fourth in ten documents. With a relevance score of 0.0, it should have been last.
 
-Looking at the relevance file, we also came up with other ideas for features:
+We took a look at the page, and discovered that it was a personal page of Clint Cummins, about a book he wrote on rock climbing. We realized that the site's url gave away the fact that it was a personal homepage (and therefore less likely to be relevant) because it contained \texttt{$\sim$clint}.
 
-Finally, we did a grid search for parameters. Similar to task 2, the linear kernel SVM performs well for a large range of $C$ values, while RBF SVM has a sweet spot of approximately $C\in[2^{2},2^{3}]$ and $\gamma\in[2^{-4},2^{-5}]$. Peak performance for both are quite similar.
+We immediately got the idea to add a binary feature to detect the ``$\sim$" character in urls. After adding the feature, we tested out the system. To our surprise, the performance stayed the same --- the feature didn't work. It took some more analysis for it to dawn on us that having a ``$\sim$" is not necessarily a bad sign --- many queries actually ask for personal homepages for professors, such as the query \texttt{jeffery ullman}, which has the url \texttt{http://infolab.stanford.edu/$\sim$ullman/} at relevance 3.0. This meant that detecting the ``$\sim$" was not enough --- we needed to detect if the character appears in a url while the query does not ask for that person. With this new insight, we came up with an improved feature that is still binary, but is only true if (1), a tilde appears and (2), no query terms appear in the url. With this feature, we improved our system performance by 0.01, which is a good increase. For the specific error case, \texttt{http://www.stanford.edu/$\sim$clint/index/} dropped a couple places, which was encouraging. 
 
-Finally, our performance for task 3:
-\begin{table}[H]
+Another error we noticed was for the query \texttt{andrew ng computer science stanford}, where our system ranked a link to New York Times story in the top 3. The story was indeed about Andrew Ng and is a good read, but would probably not fulfill the information need of the person with that query. We noticed that the document url was very long, and contained a lot of characters such as ``\&", ``?" and ``=".
+
+Therefore, we came up with two lines of attack: (1) Add features related to url length. (2) Add features that detect special characters. For url length, we tried number of characters, number of words and number of segments (seperated by slashes). We also tried doing log-scaling for these features. In the end, we came up with the feature $\log{num_words-4.5}$, which seemed to work best. For special characters, we tried adding binary features that detected their existence in the url, but they didn't really help. With the new url length feature, we observed a slightly lower ranking for docs with really long urls (the log scaling meant the feature was only prominent for exceedingly wordy urls), and an overall performance boost.
+
+Finally, we made further observations on the training and test data and felt that the file type could be a good feature to add. (It seemed to be the case that many PDF files got high scores and PPT files had low relevance scores.) After adding two feature to detect PDF and PPT files, our ranking performance went up by 0.018, a considerable increase.
+
+Apart from that, we also imported our extra features from PA3. Some of them worked well, namely ``number of fields where query terms appear'' and ``number of query terms that are missing from document''. We also added the log normalized document body length as a feature, with help a bit.
+
+Finally, we did a grid search for parameters. Similar to task 2, the linear kernel SVM performs well for a large range of $C$ values, while RBF SVM has a sweet spot of approximately $C\in[2^{2},2^{3}]$ and $\gamma\in[2^{-4},2^{-5}]$. Peak performance for both are quite similar. With all features in effect, RBF SVM got the highest score of 0.8750 with grid search, but linear SVM consistently gets over 0.8745 for a large range of parameters.
+
+Finally, our performance for task 3 (numbers are from linear SVM, RBF SVM very similar):
+\begin{table}[H] 
 \centering
 \begin{tabular}{|c|c|c|}
 \hline
@@ -86,8 +94,8 @@ base+bm25+PR & 0.8820 & 0.8660\\\hline
 base+bm25+win & 0.8789 & 0.8541\\\hline
 base+PR+win & 0.8722 & 0.8568\\\hline
 base+bm25+PR+win & 0.8819 & 0.8664\\\hline
-6 extra features & 0.8888 & 0.8737\\\hline
-after grid search  & 0.8873 & 0.8743\\\hline
+7 extra features & 0.8896 & 0.8747\\\hline
+after grid search (RBF)  & 0.8894 & 0.8750\\\hline
 \end{tabular}
 \end{table}
 
