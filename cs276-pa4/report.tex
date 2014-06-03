@@ -68,6 +68,10 @@ Next, we take a look at the ranking output of our system and do error analysis. 
 \end{verbatim}
 We see two mistakes in the above ranking. 
 
+Looking at the relevance file, we also came up with other ideas for features:
+
+Finally, we did a grid search for parameters. Similar to task 2, the linear kernel SVM performs well for a large range of $C$ values, while RBF SVM has a sweet spot of approximately $C\in[2^{2},2^{3}]$ and $\gamma\in[2^{-4},2^{-5}]$. Peak performance for both are quite similar.
+
 Finally, our performance for task 3:
 \begin{table}[H]
 \centering
@@ -83,12 +87,14 @@ base+bm25+win & 0.8789 & 0.8541\\\hline
 base+PR+win & 0.8722 & 0.8568\\\hline
 base+bm25+PR+win & 0.8819 & 0.8664\\\hline
 6 extra features & 0.8888 & 0.8737\\\hline
-grid search  & 0.8873 & 0.8743\\\hline
+after grid search  & 0.8873 & 0.8743\\\hline
 \end{tabular}
 \end{table}
 
 \section*{Task 4: Extra Credit}
-Finally, our performance for task 4:
+For extra credit, we experimented with using SVM regression for the pointwise approach. Using the new features, our regression SVM achieves a score of 0.8632, which is a large improvement on task 2. Also, our regression SVM performs better than a linear regression model using the same features.
+
+Our performance for task 4:
 \begin{table}[H]
 \centering
 \begin{tabular}{|c|c|}
