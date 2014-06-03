@@ -28,13 +28,11 @@ dev & 0.8429\\\hline
 \end{table}
 
 \section*{Task 2: Pairwise Approach}
-The pairwise approach is totally different from the pointwise approach, in that we do not directly try to predict a relevance score for a query-document pair, but train our classifier to compare the relevance of different query-document pairs. Finally, we use this classifier to come up with an ordering of all the documents for a query. Here, we experimented with both linear and RBF kernel SVM classifiers.
-
-For this task, we are still limited to five tf-idf features. As for the design choices we made, we would like to briefly mention term frequency scaling and document length normalization, and also discuss what we tried in terms of standardization. In addition, we will report our approach to tuning parameters for the SVM classifier, especially grid search.
+The pairwise approach is totally different from the pointwise approach, in that we do not directly try to predict a relevance score for a query-document pair, but train our classifier to compare the relevance of different query-document pairs.
 
 Similar to task 1, sublinear scaling of term frequencies and document length normalization are two things we can do to help the performance of the ranking system. In this task, both sublinear scaling and length normalization gave the NDCG score a considerable boost, so we do both these operations in our final system.
 
-Standardization for the input for the SVM is necessary for fast runtime and good performance. Therefore, we shift and scale each dimension of the input vector so that each dimension has zero mean and unit variance. In the assignment guidelines, we were instructed to do standardization \underline{before} we took the difference of vectors. Also, we were instructed to do standardization independently on the training and test set. We felt that these might not be the correct practice, but rather shortcuts to make the assignment simpler. Therefore, we implemented both versions of standardization to see if they lead to any difference in performance.
+Standardization for the input for the SVM is necessary for fast runtime and good performance. In the assignment guidelines, we were instructed to do standardization \underline{before} we took the difference of vectors. Also, we were instructed to do standardization independently on the training and test set. We felt that these might not be the correct practice, but rather shortcuts to make the assignment simpler. Therefore, we implemented both versions of standardization to see if they lead to any difference in performance.
 
 Firstly, since the actual vectors that get sent into the SVM for training are the vectors after we take the difference, it makes more sense to do standardization on that dataset. Secondly, it is a good idea to do the same preprocessing to training and test data, so we should not do separate standardization for training and test. In our second implementation, we implemented our own standardization method that remembers the mean and standard deviation of the training data, and apply the same filter to the test data as the training data.
 
@@ -56,6 +54,20 @@ dev & 0.8472 & 0.8479\\\hline
 \end{table}
 
 \section*{Task 3: More Features and \\Error Analysis}
+In this task, we add extra features to the model in the previous task in order to achieve better results.
+
+First, we tested out our classifier with one extra feature, either the BM25F value, the PageRank score, or the smallest window score. We computed the these three values with our best weights and best choices of functions from PA3. We also tried out other functions for PageRank and smallest window, but they were not as good. On its own, the BM25F score is the most helpful (+0.68), followed by PageRank (+0.48), while smallest window helped just a bit (+0.18).
+
+Then, we tried combinations of two extra features. BM25F in combination with PageRank was by far the most helpful, achieving a score of 0.8660, while the other two combinations were around 0.855. Surprisingly, BM25F and smallest window was not as good as PageRank and smallest window, with shows some combinations are just better than others. Finally, using all three extra features, we got 0.8664 --- only a small rise from BM25F + PageRank.
+
+From all this, it seems that the smallest window score is least useful, while BM25F is best, and PageRank is also good. This could mean that we just didn't come up with a good function to utilize the smallest window score.
+
+Next, we take a look at the ranking output of our system and do error analysis. A sample output is shown below (we show the given relevance scores for each document to highlight errors).
+\begin{verbatim}
+
+\end{verbatim}
+We see two mistakes in the above ranking. 
+
 Finally, our performance for task 3:
 \begin{table}[H]
 \centering
@@ -71,7 +83,7 @@ base+bm25+win & 0.8789 & 0.8541\\\hline
 base+PR+win & 0.8722 & 0.8568\\\hline
 base+bm25+PR+win & 0.8819 & 0.8664\\\hline
 6 extra features & 0.8888 & 0.8737\\\hline
-grid search 0.8873 & 0.8743 & \\\hline
+grid search  & 0.8873 & 0.8743\\\hline
 \end{tabular}
 \end{table}
 
