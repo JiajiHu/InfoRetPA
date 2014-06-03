@@ -332,8 +332,8 @@ public class PairwiseLearner extends Learner {
     attributes.add(new Attribute("url_num_words"));
     // attributes.add(new Attribute("url_num_segments"));
 //    attributes.add(new Attribute("url_~"));
-    // attributes.add(new Attribute("url_?"));
-    // attributes.add(new Attribute("url_="));
+//     attributes.add(new Attribute("url_?"));
+//     attributes.add(new Attribute("url_="));
     attributes.add(new Attribute("pdf"));
     attributes.add(new Attribute("ppt"));
 
@@ -498,7 +498,7 @@ public class PairwiseLearner extends Learner {
       pdf = 1;
     weights[i] = pdf;
     i++;
-   
+
     // is ppt file
     url = d.url;
     double ppt = 0.0;
@@ -506,7 +506,7 @@ public class PairwiseLearner extends Learner {
       ppt = 1;
     weights[i] = ppt;
     i++;
-    
+
     return weights;
 
   }

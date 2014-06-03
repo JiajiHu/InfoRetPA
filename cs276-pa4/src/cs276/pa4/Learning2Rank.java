@@ -20,11 +20,11 @@ public class Learning2Rank {
   // std determines whether to use the right standardization
   static boolean std = false;
   static boolean t2isLinearKernel = true;
-  static double t2C;
-  static double t2G;
+  static double t2C = 2000;
+  static double t2G = 0.0002;
   static boolean t3isLinearKernel = true;
-  static double t3C;
-  static double t3G;
+  static double t3C = 2000.0;
+  static double t3G = 0.00002;
   static boolean t4isLinearKernel = true;
   static double t4C = 1.0;
   static double t4G = 0.2;
@@ -41,14 +41,14 @@ public class Learning2Rank {
       learner = new PointwiseLearner();
     } else if (task == 2) {
       learner = new PairwiseLearner(t2isLinearKernel, false, !std);
-      // learner = new PairwiseLearner(t2C, t2G, isLinearKernel, !std);
-    } else if (task == 3) {
-      learner = new PairwiseLearner(t3isLinearKernel, true, !std);
-      // learner = new PairwiseLearner(t3C,t3G,isLinearKernel, true, !std);
+//       learner = new PairwiseLearner(t2C, t2G, t2isLinearKernel, false, !std);
+    } else if (task == 3 || task == 4) { // still use task3 for extra credit competition
+     learner = new PairwiseLearner(t3isLinearKernel, true, !std);
+//      learner = new PairwiseLearner(t3C, t3G, t3isLinearKernel, true, !std);
 
-    } else if (task == 4) {
-      // learner = new SVMPointwiseLearner(t4C, t4G, t4isLinearKernel, !std);
-      learner = new SVMPointwiseLearner(t4isLinearKernel, !std);
+    } else if (task == 5) {
+//      learner = new SVMPointwiseLearner(t4C, t4G, t4isLinearKernel, !std);
+       learner = new SVMPointwiseLearner(t4isLinearKernel, !std);
     }
 
     /* Step (1): construct your feature matrix here */
@@ -88,10 +88,10 @@ public class Learning2Rank {
     } else if (task == 2) {
       learner = new PairwiseLearner(t2isLinearKernel, false, !std);
       // learner = new PairwiseLearner(t2C, t2G, isLinearKernel, false, !std);
-    } else if (task == 3) {
+    } else if (task == 3 || task == 4) {
       learner = new PairwiseLearner(t3isLinearKernel, true, !std);
-//      learner = new PairwiseLearner(t3C, t3G, isLinearKernel, true, !std);
-    } else if (task == 4) {
+      // learner = new PairwiseLearner(t3C, t3G, isLinearKernel, true, !std);
+    } else if (task == 5) {
       learner = new SVMPointwiseLearner(t4isLinearKernel, !std);
       // learner = new SVMPointwiseLearner(t4C, t4G, t4isLinearKernel, !std);
     }

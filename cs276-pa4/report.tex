@@ -8,6 +8,14 @@
 \maketitle
 
 \section*{Task 1: Pointwise Approach}
+In this part, we use linear regression to give a score to each query-document pair. The query-document pairs are represented by a five-dimensional vector of tf-idf scores.
+
+Since we cannot start adding new features at this point, and there are no parameters to tune for linear regression, there is not much for us to design ourselves in this task. Here, we focus on two design choices:
+
+Firstly, we determined whether or not to use sublinear scaling for term frequencies. By using sublinear scaling, we design the system so that high frequencies of a single term have a smaller impact on the score. Conceptually this makes sense, because having a query term appear 10 times is probably better than having it appear 1 time, but it probably shouldn't be 10 times as good. With sublinear scaling, our linear regression model achieved a high score, so we used sublinear scaling.
+
+Secondly, we tried applying length normalization to each document. The idea is that since longer documents are more likely to have more query terms appear, we should penalize them for their length. Furthermore, we can smooth the document lengths for better performance. It turned out that document length normalization did not help performance on this task. However, length normalization did help in the following tasks, as we will discuss later.
+
 Finally, our performance for task 1:
 \begin{table}[H]
 \centering
@@ -20,6 +28,22 @@ dev & 0.8429\\\hline
 \end{table}
 
 \section*{Task 2: Pairwise Approach}
+The pairwise approach is totally different from the pointwise approach, in that we do not directly try to predict a relevance score for a query-document pair, but train our classifier to compare the relevance of different query-document pairs. Finally, we use this classifier to come up with an ordering of all the documents for a query. Here, we experimented with both linear and RBF kernel SVM classifiers.
+
+For this task, we are still limited to five tf-idf features. As for the design choices we made, we would like to briefly mention term frequency scaling and document length normalization, and also discuss what we tried in terms of standardization. In addition, we will report our approach to tuning parameters for the SVM classifier, especially grid search.
+
+Similar to task 1, sublinear scaling of term frequencies and document length normalization are two things we can do to help the performance of the ranking system. In this task, both sublinear scaling and length normalization gave the NDCG score a considerable boost, so we do both these operations in our final system.
+
+Standardization for the input for the SVM is necessary for fast runtime and good performance. Therefore, we shift and scale each dimension of the input vector so that each dimension has zero mean and unit variance. In the assignment guidelines, we were instructed to do standardization \underline{before} we took the difference of vectors. Also, we were instructed to do standardization independently on the training and test set. We felt that these might not be the correct practice, but rather shortcuts to make the assignment simpler. Therefore, we implemented both versions of standardization to see if they lead to any difference in performance.
+
+Firstly, since the actual vectors that get sent into the SVM for training are the vectors after we take the difference, it makes more sense to do standardization on that dataset. Secondly, it is a good idea to do the same preprocessing to training and test data, so we should not do separate standardization for training and test. In our second implementation, we implemented our own standardization method that remembers the mean and standard deviation of the training data, and apply the same filter to the test data as the training data.
+
+In practice, both the standardization recommended in the guidelines and our own standardization give good results. It makes sense that the shortcuts work. For the first shortcut, we know that we don't need the input data to exactly have zero mean and unit variance for SVM to work well. Standardization before taking the difference gives a distribution that is good enough. For the second shortcut, we rely on the fact that the training and test data have very similar distributions, so doing standardization separately yields very similar results as doing the same transformation on the two datasets.
+
+To tune the SVM parameters, we used grid search on parameter \texttt{C} for linear kernel SVM, and parameters $C$ and $\gamma$ for RBF SVM. We searched on the following range: $C=\{2^{-3},2^{-2},\dots,2^{3}\}$, and $\gamma=\{2^{-7},2^{-6},\dots,2^{-1}\}$. We noticed that with large $C$ and large $\gamma$, the training time goes up considerably. Also, the performance of the linear SVM does not vary a lot with $C$, and the liner SVM performs very well even under default parameters. For the RBF SVM, we got some good performance with $C=\{2^{2},2^{3}\}$ and $\gamma=\{2^{-4},2^{-5}\}$, though there is a lot of variance in the results.
+
+Comparing the linear and RBF kernel SVMs, both give good performance. The RBF SVM got a slightly higher top NDCG score after grid search, but not by much. On the other hand, the linear SVM is handy because it is generally faster to train and is not as sensitive to parameter adjustment.
+
 Finally, our performance for task 2:
 \begin{table}[H]
 \centering
@@ -47,7 +71,7 @@ base+bm25+win & 0.8789 & 0.8541\\\hline
 base+PR+win & 0.8722 & 0.8568\\\hline
 base+bm25+PR+win & 0.8819 & 0.8664\\\hline
 6 extra features & 0.8888 & 0.8737\\\hline
-grid search &  & \\\hline
+grid search 0.8873 & 0.8743 & \\\hline
 \end{tabular}
 \end{table}
 
@@ -58,8 +82,8 @@ Finally, our performance for task 4:
 \begin{tabular}{|c|c|}
 \hline
 Dataset & NDCG/iNDCG score \\\hline
-training & \\\hline
-dev & \\\hline
+training & 0.8897\\\hline
+dev & 0.8632\\\hline
 \end{tabular}
 \end{table}
 
