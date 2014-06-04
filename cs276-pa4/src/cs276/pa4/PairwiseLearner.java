@@ -188,6 +188,8 @@ public class PairwiseLearner extends Learner {
     } catch (Exception e) {
       e.printStackTrace();
     }
+    // System.err.println(model.coefficients()[4]);
+
     return model;
   }
 
@@ -326,16 +328,18 @@ public class PairwiseLearner extends Learner {
     attributes.add(new Attribute("pagerank"));
     attributes.add(new Attribute("smallest_window"));
     attributes.add(new Attribute("log_body_length"));
+    // attributes.add(new Attribute("query_length"));
     attributes.add(new Attribute("numfields"));
     attributes.add(new Attribute("numqueries"));
     // attributes.add(new Attribute("log_url_len"));
     attributes.add(new Attribute("url_num_words"));
     // attributes.add(new Attribute("url_num_segments"));
     attributes.add(new Attribute("url_~"));
-//     attributes.add(new Attribute("url_?"));
-//     attributes.add(new Attribute("url_="));
+    // attributes.add(new Attribute("url_?"));
+    // attributes.add(new Attribute("url_="));
     attributes.add(new Attribute("pdf"));
     attributes.add(new Attribute("ppt"));
+    attributes.add(new Attribute("txt"));
 
     ArrayList<String> labels = new ArrayList<String>();
     labels.add("0");
@@ -396,7 +400,9 @@ public class PairwiseLearner extends Learner {
     }
 
     // Add bm25 weights
-    double[] WEIGHTS = { 3.3, 5.2, 0.9, 2.85, 3.45 };
+    // double[] WEIGHTS = { 3.3, 5.2, 0.9, 2.85, 3.45 }; // from PA 3
+    // double[] WEIGHTS = { 2.26, 3.39, 0, 1.51, 1.20 }; // from task 1
+    double[] WEIGHTS = { 1.24, 3.767, 0.15, 2.245, 3.98 }; // from task 2
     double[] B_WEIGHTS = { 0.0, 0.2, 0.8, 0.5, 0.0 };
     double[] len = { Util.mapSum(Util.parseURL(d.url)),
         Util.mapSum(Util.parseTitle(d.title)), (double) d.body_length,
@@ -406,12 +412,11 @@ public class PairwiseLearner extends Learner {
     double K1 = 4.9;
     int V_NUM = 2;
     int W_NUM = 2;
-    double PR_Lambda = 3.25;
     double PR_LambdaPrime = 0.05;
     double PR_LambdaPrime2 = 0.1;
     Util.normalizeBM25TFs(tfs, d, q, len, B_WEIGHTS, avrLen);
-    double bm25 = Util.getNetScore(idfs, WEIGHTS, V_NUM, K1, PR_Lambda,
-        PR_LambdaPrime, PR_LambdaPrime2, tfs, q, tfQuery, d);
+    double bm25 = Util
+        .getNetScore(idfs, WEIGHTS, V_NUM, K1, tfs, q, tfQuery, d);
     weights[i] = bm25;
     i++;
 
@@ -473,13 +478,13 @@ public class PairwiseLearner extends Learner {
     // i++;
 
     String url;
-     // url number of ~
-     url = d.url;
-     double tilde = 0;
-     if (url.contains("~") && weights[0] != 0)
-       tilde = 1;
-     weights[i] = tilde;
-     i++;
+    // url number of ~
+    url = d.url;
+    double tilde = 0;
+    if (url.contains("~") && weights[0] != 0)
+      tilde = 1;
+    weights[i] = tilde;
+    i++;
 
     // // url number of ?
     // url = d.url;
@@ -507,6 +512,14 @@ public class PairwiseLearner extends Learner {
     if (url.endsWith("ppt"))
       ppt = 1;
     weights[i] = ppt;
+    i++;
+
+    // is txt file
+    url = d.url;
+    double txt = 0.0;
+    if (url.endsWith("txt"))
+      txt = 1;
+    weights[i] = txt;
     i++;
 
     return weights;

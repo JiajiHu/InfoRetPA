@@ -406,8 +406,7 @@ public class Util {
   }
 
   public static double getNetScore(Map<String, Double> idfs, double[] WEIGHTS,
-      int V_NUM, double K1, double PR_Lambda, double PR_LambdaPrime,
-      double PR_LambdaPrime2, Map<Field, Map<String, Double>> tfs, Query q,
+      int V_NUM, double K1, Map<Field, Map<String, Double>> tfs, Query q,
       Map<String, Double> tfQuery, Document d) {
 
     double score = 0.0;

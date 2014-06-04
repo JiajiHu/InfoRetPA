@@ -265,7 +265,9 @@ public class SVMPointwiseLearner extends Learner {
     }
 
     // Add bm25 weights
-    double[] WEIGHTS = { 3.3, 5.2, 0.9, 2.85, 3.45 };
+//    double[] WEIGHTS = { 3.3, 5.2, 0.9, 2.85, 3.45 };
+  double[] WEIGHTS = { 2.26, 3.39, 0, 1.51, 1.20 }; // from task 1
+//    double[] WEIGHTS = { 1.24, 3.767, 0.15, 2.245, 3.98 }; // from task 2
     double[] B_WEIGHTS = { 0.0, 0.2, 0.8, 0.5, 0.0 };
     double[] len = { Util.mapSum(Util.parseURL(d.url)),
         Util.mapSum(Util.parseTitle(d.title)), (double) d.body_length,

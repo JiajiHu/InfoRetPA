@@ -85,6 +85,7 @@ public class PointwiseLearner extends Learner {
     } catch (Exception e) {
       e.printStackTrace();
     }
+//    System.err.println(model.coefficients()[0]);
     return model;
   }
 

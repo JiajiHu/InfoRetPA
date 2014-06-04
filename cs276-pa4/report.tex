@@ -7,7 +7,7 @@
 \date{}
 \maketitle
 
-\section*{Task 1: Pointwise Approach}
+\section*{Task 1: Pointwise Approach and \\Linear Regression}
 In this part, we use linear regression to give a score to each query-document pair. The query-document pairs are represented by a five-dimensional vector of tf-idf scores.
 
 Since we cannot start adding new features at this point, and there are no parameters to tune for linear regression, there is not much for us to design ourselves in this task. Here, we focus on two design choices:
@@ -27,7 +27,7 @@ dev & 0.8429\\\hline
 \end{tabular}
 \end{table}
 
-\section*{Task 2: Pairwise Approach}
+\section*{Task 2: Pairwise Approach and \\Ranking SVM}
 The pairwise approach is totally different from the pointwise approach, in that we do not directly try to predict a relevance score for a query-document pair, but train our classifier to compare the relevance of different query-document pairs.
 
 Similar to task 1, sublinear scaling of term frequencies and document length normalization are two things we can do to help the performance of the ranking system. In this task, both sublinear scaling and length normalization gave the NDCG score a considerable boost, so we do both these operations in our final system.
@@ -38,11 +38,11 @@ Firstly, since the actual vectors that get sent into the SVM for training are th
 
 In practice, both the standardization recommended in the guidelines and our own standardization give good results. It makes sense that the shortcuts work. For the first shortcut, we know that we don't need the input data to exactly have zero mean and unit variance for SVM to work well. Standardization before taking the difference gives a distribution that is good enough. For the second shortcut, we rely on the fact that the training and test data have very similar distributions, so doing standardization separately yields very similar results as doing the same transformation on the two datasets.
 
-To tune the SVM parameters, we used grid search on parameter \texttt{C} for linear kernel SVM, and parameters $C$ and $\gamma$ for RBF SVM. We searched on the following range: $C=\{2^{-3},2^{-2},\dots,2^{3}\}$, and $\gamma=\{2^{-7},2^{-6},\dots,2^{-1}\}$. We noticed that with large $C$ and large $\gamma$, the training time goes up considerably. Also, the performance of the linear SVM does not vary a lot with $C$, and the liner SVM performs very well even under default parameters. For the RBF SVM, we got some good performance with $C=\{2^{2},2^{3}\}$ and $\gamma=\{2^{-4},2^{-5}\}$, though there is a lot of variance in the results.
+To tune the SVM parameters, we used grid search on parameter \texttt{C} for linear kernel SVM, and parameters $C$ and $\gamma$ for RBF SVM. We searched on the following range: $C=\{2^{-3},2^{-2},\dots,2^{3}\}$, and $\gamma=\{2^{-7},2^{-6},\dots,2^{-1}\}$. We noticed that with large $C$ and large $\gamma$, the training time goes up considerably, especially because many iterations are needed for the algorithm to terminate. Also, the performance of the linear SVM does not vary a lot with $C$, and the linear SVM performs very well even under default parameters. For the RBF SVM, we got some good performance with $C=\{2^{2},2^{3}\}$ and $\gamma=\{2^{-4},2^{-5}\}$, though there is a lot of variance in the results.
 
 Comparing the linear and RBF kernel SVMs, both give good performance. The RBF SVM got a slightly higher top NDCG score after grid search, but not by much. On the other hand, the linear SVM is handy because it is generally faster to train and is not as sensitive to parameter adjustment.
 
-Finally, our performance for task 2:
+Finally, our performance for task 2 is shown in the following table:
 \begin{table}[H]
 \centering
 \begin{tabular}{|c|c|c|}
@@ -56,9 +56,9 @@ dev & 0.8472 & 0.8479\\\hline
 \section*{Task 3: More Features and \\Error Analysis}
 In this task, we add extra features to the model in the previous task in order to achieve better results.
 
-First, we tested out our classifier with one extra feature, either the BM25F value, the PageRank score, or the smallest window score. We computed the these three values with our best weights and best choices of functions from PA3. We also tried out other functions for PageRank and smallest window, but they were not as good. On its own, the BM25F score is the most helpful (+0.68), followed by PageRank (+0.48), while smallest window helped just a bit (+0.18).
+First, we tested out our classifier with one extra feature, either the BM25F value, the PageRank score, or the smallest window score. We first computed these three values with our best weights and best choices of functions from PA3. Then, we tried using the weights from the trained linear SVM model from task 2, which gave our score a huge boost of around 0.03. We also tried out other functions for PageRank and smallest window, but they were not as good. On its own, the BM25F score is the most helpful (+0.107), followed by PageRank (+0.054), while smallest window helped just a bit (+0.018).
 
-Then, we tried combinations of two extra features. BM25F in combination with PageRank was by far the most helpful, achieving a score of 0.8660, while the other two combinations were around 0.855. Surprisingly, BM25F and smallest window was not as good as PageRank and smallest window, with shows some combinations are just better than others. Finally, using all three extra features, we got 0.8664 --- only a small rise from BM25F + PageRank.
+Then, we tried combinations of two extra features. BM25F in combination with PageRank was by far the most helpful, achieving a score of 0.8735, while the other two combinations were around 0.857. Surprisingly, adding smallest window to BM25F was actually worse than having BM25F alone, though PageRank and smallest window combined got a bigger boost than the combined boost from using the two on their own. Finally, using all three extra features, we got 0.8742 --- only a small rise from BM25F + PageRank.
 
 From all this, it seems that the smallest window score is least useful, while BM25F is best, and PageRank is also good. This could mean that we just didn't come up with a good function to utilize the smallest window score.
 
@@ -72,35 +72,37 @@ We immediately got the idea to add a binary feature to detect the ``$\sim$" char
 
 Another error we noticed was for the query \texttt{andrew ng computer science stanford}, where our system ranked a link to New York Times story in the top 3. The story was indeed about Andrew Ng and is a good read, but would probably not fulfill the information need of the person with that query. We noticed that the document url was very long, and contained a lot of characters such as ``\&", ``?" and ``=".
 
-Therefore, we came up with two lines of attack: (1) Add features related to url length. (2) Add features that detect special characters. For url length, we tried number of characters, number of words and number of segments (seperated by slashes). We also tried doing log-scaling for these features. In the end, we came up with the feature $\log{num_words-4.5}$, which seemed to work best. For special characters, we tried adding binary features that detected their existence in the url, but they didn't really help. With the new url length feature, we observed a slightly lower ranking for docs with really long urls (the log scaling meant the feature was only prominent for exceedingly wordy urls), and an overall performance boost.
+Therefore, we came up with two lines of attack: (1) Add features related to url length. (2) Add features that detect special characters. For url length, we tried number of characters, number of words and number of segments (seperated by slashes). We also tried doing log-scaling for these features. In the end, we came up with the feature $\log{num_words-4.5}$, which seemed to work best. With the new url length feature, we observed a slightly lower ranking for docs with really long urls (the log scaling meant the feature was only prominent for exceedingly wordy urls), and an overall performance boost.
 
-Finally, we made further observations on the training and test data and felt that the file type could be a good feature to add. (It seemed to be the case that many PDF files got high scores and PPT files had low relevance scores.) After adding two feature to detect PDF and PPT files, our ranking performance went up by 0.018, a considerable increase.
+For special characters, we tried adding binary features that detected their existence in the url, but they didn't really help. That is understandable because in truth, characters such as ``\&", ``?" and ``=" appear quite a lot in urls, and their existence are not a good indicator of relevance.
 
-Apart from that, we also imported our extra features from PA3. Some of them worked well, namely ``number of fields where query terms appear'' and ``number of query terms that are missing from document''. We also added the log normalized document body length as a feature, with help a bit.
+Finally, we made further observations on the training and test data and felt that the file type could be a good feature to add. (It seemed to be the case that many PDF files got high scores and PPT files had low relevance scores --- possibly because the person with the query is usually not looking for a PPT file when typing his query.) After adding three feature to detect PDF, PPT and TXT files, our ranking performance went up by 0.025, a considerable increase. The feature that detected PDF suffixes had a larger impact, partly because there were a lot more PDF files in the results than PPT and TXT files.
 
-Finally, we did a grid search for parameters. Similar to task 2, the linear kernel SVM performs well for a large range of $C$ values, while RBF SVM has a sweet spot of approximately $C\in[2^{2},2^{3}]$ and $\gamma\in[2^{-4},2^{-5}]$. Peak performance for both are quite similar. With all features in effect, RBF SVM got the highest score of 0.8750 with grid search, but linear SVM consistently gets over 0.8745 for a large range of parameters.
+Apart from that, we also imported our extra features from PA3. Some of them worked well, namely ``number of fields where query terms appear'' and ``number of query terms that are missing from document''. It makes sense that a document that contains all the query words is probably more relevant than one that only contains a subset of the query words. We also added the log normalized document body length as a feature, which helped a bit. Our theories for this is that the length of a document is an indicator of its quality, and higher quality documents generally get better scores.
 
-Finally, our performance for task 3 (numbers are from linear SVM, RBF SVM very similar):
+Finally, we did a grid search for parameters. Similar to task 2, the linear kernel SVM performs well for a large range of $C$ values, while RBF SVM has a sweet spot of approximately $C\in[2^{2},2^{3}]$ and $\gamma\in[2^{-4},2^{-5}]$. Peak performance for both are quite similar. With all features in effect, RBF SVM got the highest dev score of 0.8803 with grid search, but linear SVM consistently gets around 0.8795 for a large range of parameters. The training score for both was around 0.8905, so overfitting was not a huge issue for good parameter choices.
+
+Finally, our performance for task 3 (numbers are from linear SVM, RBF SVM is very similar):
 \begin{table}[H] 
 \centering
 \begin{tabular}{|c|c|c|}
 \hline
 Features &Train& Dev \\\hline
 base & 0.8637 & 0.8479\\\hline
-base+bm25 & 0.8782 & 0.8547\\\hline
-base+PR & 0.8688 & 0.8527\\\hline
+base+bm25 & 0.8802 & 0.8586\\\hline
+base+PR & 0.8688 & 0.8533\\\hline
 base+win & 0.8668 & 0.8497\\\hline
-base+bm25+PR & 0.8820 & 0.8660\\\hline
-base+bm25+win & 0.8789 & 0.8541\\\hline
+base+bm25+PR & 0.8885 & 0.8735\\\hline
+base+bm25+win & 0.8824 & 0.8580\\\hline
 base+PR+win & 0.8722 & 0.8568\\\hline
-base+bm25+PR+win & 0.8819 & 0.8664\\\hline
-7 extra features & 0.8896 & 0.8747\\\hline
-after grid search (RBF)  & 0.8894 & 0.8750\\\hline
+base+bm25+PR+win & 0.8900 & 0.8742\\\hline
+8 extra features & 0.8905 & 0.8799\\\hline
+after grid search (RBF)  & 0.8906 & 0.8803\\\hline
 \end{tabular}
 \end{table}
 
 \section*{Task 4: Extra Credit}
-For extra credit, we experimented with using SVM regression for the pointwise approach. Using the new features, our regression SVM achieves a score of 0.8632, which is a large improvement on task 2. Also, our regression SVM performs better than a linear regression model using the same features.
+For extra credit, we experimented with using SVM regression for the pointwise approach. Using the new features, our regression SVM achieves a score of 0.8675, which is a large improvement on task 2. Also, our regression SVM performs better than a linear regression model using the same features.
 
 Our performance for task 4:
 \begin{table}[H]
@@ -108,9 +110,12 @@ Our performance for task 4:
 \begin{tabular}{|c|c|}
 \hline
 Dataset & NDCG/iNDCG score \\\hline
-training & 0.8897\\\hline
-dev & 0.8632\\\hline
+training & 0.8902\\\hline
+dev & 0.8675\\\hline
 \end{tabular}
 \end{table}
 
+Interestingly, some of the good features we found for task 3 did not work out for the Regression SVM. We had to take out features such as log body length, number of fields with query terms, and the detector for ``$\sim$" in the url.
+
+On the other hand, for the BM25F feature, we switched to using the weights we got from the linear regression classifier in task 1. This improved performance by 0.025. The switch makes sense, because we are moving back to the pointwise approach, and weights learned in that setting might be better than weights learned in the pairwise setting, where the objective is totally different.
 \end{document}

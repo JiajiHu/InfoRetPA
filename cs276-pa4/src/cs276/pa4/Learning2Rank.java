@@ -47,8 +47,8 @@ public class Learning2Rank {
 //      learner = new PairwiseLearner(t3C, t3G, t3isLinearKernel, true, !std);
 
     } else if (task == 5) {
+      learner = new SVMPointwiseLearner(t4isLinearKernel, !std);
 //      learner = new SVMPointwiseLearner(t4C, t4G, t4isLinearKernel, !std);
-       learner = new SVMPointwiseLearner(t4isLinearKernel, !std);
     }
 
     /* Step (1): construct your feature matrix here */
@@ -87,10 +87,10 @@ public class Learning2Rank {
       learner = new PointwiseLearner();
     } else if (task == 2) {
       learner = new PairwiseLearner(t2isLinearKernel, false, !std);
-      // learner = new PairwiseLearner(t2C, t2G, t2isLinearKernel, false, !std);
+      // learner = new PairwiseLearner(t2C, t2G, isLinearKernel, false, !std);
     } else if (task == 3 || task == 4) {
       learner = new PairwiseLearner(t3isLinearKernel, true, !std);
-//       learner = new PairwiseLearner(t3C, t3G, t3isLinearKernel, true, !std);
+      // learner = new PairwiseLearner(t3C, t3G, isLinearKernel, true, !std);
     } else if (task == 5) {
       learner = new SVMPointwiseLearner(t4isLinearKernel, !std);
       // learner = new SVMPointwiseLearner(t4C, t4G, t4isLinearKernel, !std);
