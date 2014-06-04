@@ -277,12 +277,10 @@ public class SVMPointwiseLearner extends Learner {
     double K1 = 4.9;
     int V_NUM = 2;
     int W_NUM = 2;
-    double PR_Lambda = 3.25;
     double PR_LambdaPrime = 0.05;
     double PR_LambdaPrime2 = 0.1;
     Util.normalizeBM25TFs(tfs, d, q, len, B_WEIGHTS, avrLen);
-    double bm25 = Util.getNetScore(idfs, WEIGHTS, V_NUM, K1, PR_Lambda,
-        PR_LambdaPrime, PR_LambdaPrime2, tfs, q, tfQuery, d);
+    double bm25 = Util.getNetScore(idfs, WEIGHTS, V_NUM, K1, tfs, q, tfQuery, d);
     weights[i] = bm25;
     i++;
 
